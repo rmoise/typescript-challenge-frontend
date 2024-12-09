@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  mapTilerKey: null,
+  maptilerApiKey: process.env['MAPTILER_API_KEY']?.replace(/[{}]/g, '') || ''
 }

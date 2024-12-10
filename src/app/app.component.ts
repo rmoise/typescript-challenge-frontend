@@ -14,15 +14,14 @@ import { fromTransitLines } from 'src/store/transit-lines/transit-lines.selector
 import { catchError, of, tap } from 'rxjs'
 import { LoggerService } from '../services/logger.service'
 import { FeatureCollection, Point, Feature } from 'geojson'
-import { PROPERTY_COLORS } from 'src/constants/colors'
 import { VISUALIZATION_COLORS } from 'src/constants/colors'
 import { VisualizationProperty } from 'src/types/visualization'
 import { NgIf } from '@angular/common'
 
 interface LegendRange {
-  color: string;
-  label: string;
-  range: string;
+  color: string
+  label: string
+  range: string
 }
 
 @Component({
@@ -31,14 +30,7 @@ interface LegendRange {
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [
-    RouterOutlet,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatIconModule,
-    MatButtonModule,
-    NgIf
-  ],
+  imports: [RouterOutlet, MatFormFieldModule, MatSelectModule, MatIconModule, MatButtonModule, NgIf],
 })
 export class AppComponent implements OnInit {
   // Define constants for source and layer IDs
@@ -57,36 +49,36 @@ export class AppComponent implements OnInit {
   selectedStopId = this.store.selectSignal(fromTransitLines.selectedStopId)
 
   readonly legendRanges: Signal<LegendRange[]> = computed(() => {
-    const property = this.visualizationProperty();
-    const stopId = this.selectedStopId();
+    const property = this.visualizationProperty()
+    const stopId = this.selectedStopId()
 
     // Return empty array if visualization is off and no stop is selected
-    if (property === 'off' && !stopId) return [];
+    if (property === 'off' && !stopId) return []
 
     // If visualization is off but stop is selected, use peopleOn as default property
-    const activeProperty = property === 'off' ? 'peopleOn' : property;
+    const activeProperty = property === 'off' ? 'peopleOn' : property
 
-    const maxValues = this.store.selectSignal(fromTransitLines.maxStopValues)();
-    const maxValue = maxValues[activeProperty];
+    const maxValues = this.store.selectSignal(fromTransitLines.maxStopValues)()
+    const maxValue = maxValues[activeProperty]
 
     return [
       {
         color: VISUALIZATION_COLORS.LOW,
         label: 'Low',
-        range: `0 - ${Math.floor(maxValue * 0.33)}`
+        range: `0 - ${Math.floor(maxValue * 0.33)}`,
       },
       {
         color: VISUALIZATION_COLORS.MEDIUM,
         label: 'Medium',
-        range: `${Math.floor(maxValue * 0.33)} - ${Math.floor(maxValue * 0.66)}`
+        range: `${Math.floor(maxValue * 0.33)} - ${Math.floor(maxValue * 0.66)}`,
       },
       {
         color: VISUALIZATION_COLORS.HIGH,
         label: 'High',
-        range: `${Math.floor(maxValue * 0.66)} - ${maxValue}`
-      }
-    ];
-  });
+        range: `${Math.floor(maxValue * 0.66)} - ${maxValue}`,
+      },
+    ]
+  })
 
   constructor(
     private store: Store<RootState>,
@@ -135,17 +127,10 @@ export class AppComponent implements OnInit {
         if (typeof source === 'string') return
 
         const sourceData = source as unknown as { data: FeatureCollection }
-        sourceData.data.features = sourceData.data.features.map((feature) => {
-          const featureId = feature.properties._id;
-          return {
-            ...feature,
-            id: featureId,
-            properties: {
-              ...feature.properties,
-              visualizationColor: PROPERTY_COLORS[this.visualizationProperty() || 'off']
-            }
-          };
-        })
+        sourceData.data.features = sourceData.data.features.map((feature) => ({
+          ...feature,
+          id: feature.properties._id,
+        }))
 
         const existingSource = this.map.getSource(this.STOPS_SOURCE_ID) as GeoJSONSource
         if (existingSource) {
@@ -154,7 +139,7 @@ export class AppComponent implements OnInit {
           this.map.addSource(this.STOPS_SOURCE_ID, {
             type: 'geojson',
             data: sourceData.data,
-            promoteId: '_id'
+            promoteId: '_id',
           })
         }
 
@@ -174,37 +159,7 @@ export class AppComponent implements OnInit {
         }
       })
 
-      this.map.addLayer({
-        id: this.STOPS_LAYER_ID,
-        type: 'circle',
-        source: this.STOPS_SOURCE_ID,
-        paint: {
-          'circle-radius': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            15,
-            [
-              'case',
-              ['==', ['get', '_id'], ['get', 'selectedStopId']],
-              12,
-              8
-            ]
-          ],
-          'circle-color': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            '#ffff00',
-            [
-              'case',
-              ['==', ['get', '_id'], ['get', 'selectedStopId']],
-              '#00ff00',
-              ['get', 'visualizationColor']
-            ]
-          ],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff'
-        }
-      })
+      this.setupStopsLayer()
 
       this.map.on('click', this.STOPS_LAYER_ID, (e) => {
         const features = this.map.queryRenderedFeatures(e.point, {
@@ -225,58 +180,43 @@ export class AppComponent implements OnInit {
       this.map.on('mousemove', this.STOPS_LAYER_ID, (e) => {
         if (e.features.length === 0) {
           if (this.hoveredStateId) {
-            this.map.setFeatureState(
-              { source: this.STOPS_SOURCE_ID, id: this.hoveredStateId },
-              { hover: false }
-            );
-            this.hoveredStateId = null;
-            this.popup.remove();
+            this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: this.hoveredStateId }, { hover: false })
+            this.hoveredStateId = null
+            this.popup.remove()
           }
-          return;
+          return
         }
 
-        const feature = e.features[0];
+        const feature = e.features[0]
         if (feature.properties._id !== this.hoveredStateId) {
           if (this.hoveredStateId) {
-            this.map.setFeatureState(
-              { source: this.STOPS_SOURCE_ID, id: this.hoveredStateId },
-              { hover: false }
-            );
+            this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: this.hoveredStateId }, { hover: false })
           }
-          this.hoveredStateId = feature.properties._id;
-          this.map.setFeatureState(
-            { source: this.STOPS_SOURCE_ID, id: this.hoveredStateId },
-            { hover: true }
-          );
+          this.hoveredStateId = feature.properties._id
+          this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: this.hoveredStateId }, { hover: true })
 
           // Update popup
-          const pointGeometry = feature.geometry as Point;
-          const coordinates = pointGeometry.coordinates.slice() as [number, number];
+          const pointGeometry = feature.geometry as Point
+          const coordinates = pointGeometry.coordinates.slice() as [number, number]
           const description = `
             <strong>${feature.properties.name}</strong><br>
             People getting on: ${feature.properties.peopleOn}<br>
             People getting off: ${feature.properties.peopleOff}<br>
             Within walking distance: ${feature.properties.reachablePopulationWalk}<br>
             Within biking distance: ${feature.properties.reachablePopulationBike}
-          `;
+          `
 
-          this.popup
-            .setLngLat(coordinates)
-            .setHTML(description)
-            .addTo(this.map);
+          this.popup.setLngLat(coordinates).setHTML(description).addTo(this.map)
         }
-      });
+      })
 
       this.map.on('mouseleave', this.STOPS_LAYER_ID, () => {
         if (this.hoveredStateId) {
-          this.map.setFeatureState(
-            { source: this.STOPS_SOURCE_ID, id: this.hoveredStateId },
-            { hover: false }
-          );
-          this.hoveredStateId = null;
+          this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: this.hoveredStateId }, { hover: false })
+          this.hoveredStateId = null
         }
-        this.map.getCanvas().style.cursor = '';
-        this.popup.remove();
+        this.map.getCanvas().style.cursor = ''
+        this.popup.remove()
       })
 
       const linesSource$ = this.store.pipe(select(fromTransitLines.stopsLinesGeoJson))
@@ -303,26 +243,11 @@ export class AppComponent implements OnInit {
 
       this.store.select(fromTransitLines.visualizationProperty).subscribe((property) => {
         if (this.map.getLayer(this.STOPS_LAYER_ID)) {
-          const maxValues = this.store.selectSignal(fromTransitLines.maxStopValues)();
-
           this.map.setPaintProperty(this.STOPS_LAYER_ID, 'circle-color', [
             'case',
             ['boolean', ['feature-state', 'hover'], false],
             VISUALIZATION_COLORS.HIGH,
-            [
-              'case',
-              ['==', ['get', '_id'], ['get', 'selectedStopId']],
-              VISUALIZATION_COLORS.MEDIUM,
-              property === 'off' ? '#666666' : [
-                'interpolate',
-                ['linear'],
-                ['get', property],
-                0, VISUALIZATION_COLORS.LOW,
-                maxValues[property] * 0.33, VISUALIZATION_COLORS.LOW,
-                maxValues[property] * 0.66, VISUALIZATION_COLORS.MEDIUM,
-                maxValues[property], VISUALIZATION_COLORS.HIGH
-              ]
-            ],
+            ['get', 'visualizationColor']
           ])
 
           // Only update the size for non-hover, non-selected states
@@ -339,7 +264,7 @@ export class AppComponent implements OnInit {
   }
 
   private updateCircleSize(property: VisualizationProperty) {
-    if (!this.map.getLayer(this.STOPS_LAYER_ID)) return;
+    if (!this.map.getLayer(this.STOPS_LAYER_ID)) return
 
     this.map.setPaintProperty(this.STOPS_LAYER_ID, 'circle-radius', [
       'case',
@@ -351,44 +276,98 @@ export class AppComponent implements OnInit {
         12,
         property === 'off'
           ? 8
-          : ['interpolate',
+          : [
+              'interpolate',
               ['linear'],
               ['get', property],
-              0, 6,
-              100, 8,
-              500, 10,
-              1000, 12,
-              5000, 14,
-              10000, 16,
-              50000, 18,
-              100000, 20
-            ]
-      ]
-    ]);
+              0,
+              6,
+              100,
+              8,
+              500,
+              10,
+              1000,
+              12,
+              5000,
+              14,
+              10000,
+              16,
+              50000,
+              18,
+              100000,
+              20,
+            ],
+      ],
+    ])
   }
 
   getPropertyLabel(property: VisualizationProperty): string {
     if (property === 'off' && this.selectedStopId()) {
-      return 'Stop Statistics';
+      return 'Stop Statistics'
     }
 
     switch (property) {
       case 'peopleOn':
-        return 'People Getting On';
+        return 'People Getting On'
       case 'peopleOff':
-        return 'People Getting Off';
+        return 'People Getting Off'
       case 'reachablePopulationWalk':
-        return 'Population Within Walking Distance';
+        return 'Population Within Walking Distance'
       case 'reachablePopulationBike':
-        return 'Population Within Biking Distance';
+        return 'Population Within Biking Distance'
       default:
-        return '';
+        return ''
     }
   }
 
   toggleVisualization(): void {
-    const currentProperty = this.visualizationProperty();
-    const newProperty: VisualizationProperty = currentProperty === 'off' ? 'peopleOn' : 'off';
-    this.store.dispatch(TransitLinesActions.SetVisualizationProperty({ property: newProperty }));
+    const currentProperty = this.visualizationProperty()
+    const newProperty: VisualizationProperty = currentProperty === 'off' ? 'peopleOn' : 'off'
+    this.store.dispatch(TransitLinesActions.SetVisualizationProperty({ property: newProperty }))
+  }
+
+  private setupStopsLayer(): void {
+    if (this.map.getLayer(this.STOPS_LAYER_ID)) return
+
+    this.map.addLayer({
+      id: this.STOPS_LAYER_ID,
+      type: 'circle',
+      source: this.STOPS_SOURCE_ID,
+      paint: {
+        'circle-radius': 8,
+        'circle-color': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          VISUALIZATION_COLORS.HIGH,
+          ['get', 'visualizationColor']
+        ],
+        'circle-stroke-width': ['case',
+          ['boolean', ['feature-state', 'hover'], false],
+          2,
+          ['case', ['==', ['get', '_id'], ['get', 'selectedStopId']], 2, 0]
+        ],
+        'circle-stroke-color': ['case',
+          ['boolean', ['feature-state', 'hover'], false],
+          '#ffffff',
+          ['case', ['==', ['get', '_id'], ['get', 'selectedStopId']], '#ffffff', 'transparent']
+        ],
+      },
+    })
+
+    // Subscribe to selection changes to ensure the layer updates
+    this.store.select(fromTransitLines.selectedStopId).subscribe((selectedId) => {
+      if (this.map.getLayer(this.STOPS_LAYER_ID)) {
+        // Clear previous selection
+        const currentSelectedId = this.selectedStopId()
+        if (currentSelectedId && currentSelectedId !== selectedId) {
+          this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: currentSelectedId }, { selected: false })
+        }
+
+        // Set new selection
+        if (selectedId) {
+          this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: selectedId }, { selected: true })
+        }
+      }
+    })
   }
 }

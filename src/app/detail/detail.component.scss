@@ -56,13 +56,17 @@
 }
 
 .high-value {
-  color: #4caf50;  // VISUALIZATION_COLORS.HIGH
+  color: #4caf50; // VISUALIZATION_COLORS.HIGH
 }
 
 .medium-value {
-  color: #ffc107;  // VISUALIZATION_COLORS.MEDIUM
+  color: #ffc107; // VISUALIZATION_COLORS.MEDIUM
 }
 
 .low-value {
-  color: #f44336;  // VISUALIZATION_COLORS.LOW
+  color: #f44336; // VISUALIZATION_COLORS.LOW
+}
+
+.stat-item {
+  margin-bottom: 2rem; // Add good spacing between sections
 }

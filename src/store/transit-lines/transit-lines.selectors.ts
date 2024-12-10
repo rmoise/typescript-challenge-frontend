@@ -2,7 +2,6 @@ import { createFeatureSelector, createSelector } from '@ngrx/store'
 import { GeoJSONSourceSpecification } from 'maplibre-gl'
 import { TRANSIT_LINES_KEY, adapter, TransitLinesState } from './transit-lines.reducer'
 import { TransitLine } from 'src/types/line'
-import { PROPERTY_COLORS } from 'src/constants/colors'
 import { VisualizationProperty } from 'src/types/visualization'
 import { FeatureCollection, Point } from 'geojson'
 
@@ -21,42 +20,6 @@ export namespace fromTransitLines {
     stops.find((stop) => stop.id === selStopId)
   )
 
-  /**
-   * Mapbox source for the locations
-   */
-  export const stopsPointGeoJson = createSelector(
-    selectAll,
-    visualizationProperty,
-    selectedStopId,
-    (lines: TransitLine[], property: VisualizationProperty, selectedId: string | null) => ({
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: lines.flatMap((line) =>
-          line.stops.map((stop) => ({
-            type: 'Feature',
-            id: stop.id,
-            properties: {
-              _id: stop.id,
-              name: stop.name,
-              selectedStopId: selectedId,
-              visualizationProperty: property,
-              visualizationColor: property === 'off' ? '#666666' : PROPERTY_COLORS[property],
-              peopleOn: stop.peopleOn,
-              peopleOff: stop.peopleOff,
-              reachablePopulationWalk: stop.reachablePopulationWalk,
-              reachablePopulationBike: stop.reachablePopulationBike
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: [stop.lng, stop.lat],
-            },
-          }))
-        ),
-      },
-    })
-  )
-
   export const maxStopValues = createSelector(allStops, (stops) => ({
     off: 0,
     peopleOn: Math.max(...stops.map((stop) => stop.peopleOn)),
@@ -64,6 +27,86 @@ export namespace fromTransitLines {
     reachablePopulationWalk: Math.max(...stops.map((stop) => stop.reachablePopulationWalk)),
     reachablePopulationBike: Math.max(...stops.map((stop) => stop.reachablePopulationBike)),
   }))
+
+  /**
+   * Mapbox source for the locations
+   */
+  export const stopsPointGeoJson = createSelector(
+    selectAll,
+    visualizationProperty,
+    selectedStopId,
+    maxStopValues,
+    (lines: TransitLine[], property: VisualizationProperty, selectedId: string | null, maxValues) => {
+      const result = {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: lines.flatMap((line) =>
+            line.stops.map((stop) => {
+              let visualizationColor = '#666666';
+              let strokeColor = 'transparent';
+              let strokeWidth = 0;
+
+              if (property !== 'off') {
+                const value = stop[property];
+                const maxValue = maxValues[property];
+                const percentage = (value / maxValue) * 100;
+
+                if (percentage >= 66) {
+                  visualizationColor = '#4caf50'; // HIGH - Green
+                } else if (percentage >= 33) {
+                  visualizationColor = '#ffc107'; // MEDIUM - Yellow/Amber
+                } else {
+                  visualizationColor = '#f44336'; // LOW - Red
+                }
+
+                // Add white stroke for hover/selected state
+                if (stop.id === selectedId) {
+                  strokeColor = '#ffffff';
+                  strokeWidth = 2;
+                }
+              } else if (stop.id === selectedId) {
+                const percentage = (stop.peopleOn / maxValues.peopleOn) * 100;
+                if (percentage >= 66) {
+                  visualizationColor = '#4caf50';
+                } else if (percentage >= 33) {
+                  visualizationColor = '#ffc107';
+                } else {
+                  visualizationColor = '#f44336';
+                }
+                strokeColor = '#ffffff';
+                strokeWidth = 2;
+              }
+
+              return {
+                type: 'Feature',
+                id: stop.id,
+                properties: {
+                  _id: stop.id,
+                  name: stop.name,
+                  selectedStopId: selectedId,
+                  visualizationProperty: property,
+                  visualizationColor,
+                  strokeColor,
+                  strokeWidth,
+                  peopleOn: stop.peopleOn,
+                  peopleOff: stop.peopleOff,
+                  reachablePopulationWalk: stop.reachablePopulationWalk,
+                  reachablePopulationBike: stop.reachablePopulationBike,
+                },
+                geometry: {
+                  type: 'Point',
+                  coordinates: [stop.lng, stop.lat],
+                },
+              };
+            })
+          ),
+        },
+      };
+
+      return result;
+    }
+  );
 
   export const stopsLinesGeoJson = createSelector(
     selectAll,
@@ -101,31 +144,32 @@ export namespace fromTransitLines {
 
   export const stopsGeoJson = createSelector(
     transitLinesState,
-    (state: TransitLinesState) => ({
-      type: 'geojson' as const,
-      data: {
-        type: 'FeatureCollection',
-        features: state.ids
-          .map(id => state.entities[id])
-          .filter(line => line !== undefined)
-          .flatMap(line => line!.stops)
-          .map(stop => ({
-            type: 'Feature',
-            id: stop.id,
-            properties: {
-              _id: stop.id,
-              name: stop.name,
-              peopleOn: stop.peopleOn,
-              peopleOff: stop.peopleOff,
-              reachablePopulationWalk: stop.reachablePopulationWalk,
-              reachablePopulationBike: stop.reachablePopulationBike
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: [stop.lng, stop.lat]
-            }
-          }))
-      } as FeatureCollection<Point>
-    }) as GeoJSONSourceSpecification
+    (state: TransitLinesState) =>
+      ({
+        type: 'geojson' as const,
+        data: {
+          type: 'FeatureCollection',
+          features: state.ids
+            .map((id) => state.entities[id])
+            .filter((line) => line !== undefined)
+            .flatMap((line) => line!.stops)
+            .map((stop) => ({
+              type: 'Feature',
+              id: stop.id,
+              properties: {
+                _id: stop.id,
+                name: stop.name,
+                peopleOn: stop.peopleOn,
+                peopleOff: stop.peopleOff,
+                reachablePopulationWalk: stop.reachablePopulationWalk,
+                reachablePopulationBike: stop.reachablePopulationBike,
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: [stop.lng, stop.lat],
+              },
+            })),
+        } as FeatureCollection<Point>,
+      }) as GeoJSONSourceSpecification
   )
 }

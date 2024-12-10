@@ -21,7 +21,11 @@
         People getting on: {{ selectedStop().peopleOn }}
       </div>
       <div class="bar-container">
-        <div class="bar people-on"
+        <div class="bar"
+             [ngClass]="[
+               'people-on',
+               getColorClass(getPercentage(selectedStop().peopleOn, maxValues().peopleOn))
+             ]"
              [ngStyle]="{'width': getPercentage(selectedStop().peopleOn, maxValues().peopleOn) + '%'}">
         </div>
       </div>
@@ -31,7 +35,11 @@
         People getting off: {{ selectedStop().peopleOff }}
       </div>
       <div class="bar-container">
-        <div class="bar people-off"
+        <div class="bar"
+             [ngClass]="[
+               'people-off',
+               getColorClass(getPercentage(selectedStop().peopleOff, maxValues().peopleOff))
+             ]"
              [ngStyle]="{'width': getPercentage(selectedStop().peopleOff, maxValues().peopleOff) + '%'}">
         </div>
       </div>
@@ -45,7 +53,11 @@
         Within 30min walk: {{ selectedStop().reachablePopulationWalk }}
       </div>
       <div class="bar-container">
-        <div class="bar walk"
+        <div class="bar"
+             [ngClass]="[
+               'walk',
+               getColorClass(getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk))
+             ]"
              [ngStyle]="{'width': getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk) + '%'}">
         </div>
       </div>
@@ -55,7 +67,11 @@
         Within 30min bike: {{ selectedStop().reachablePopulationBike }}
       </div>
       <div class="bar-container">
-        <div class="bar bike"
+        <div class="bar"
+             [ngClass]="[
+               'bike',
+               getColorClass(getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike))
+             ]"
              [ngStyle]="{'width': getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike) + '%'}">
         </div>
       </div>

@@ -36,20 +36,16 @@
     height: 100%;
     transition: width 0.3s ease;
 
-    &.people-on {
-      background: map-get($PROPERTY_COLORS, 'peopleOn');
+    &.low-value {
+      background: map-get($VISUALIZATION_COLORS, 'LOW');
     }
 
-    &.people-off {
-      background: map-get($PROPERTY_COLORS, 'peopleOff');
+    &.medium-value {
+      background: map-get($VISUALIZATION_COLORS, 'MEDIUM');
     }
 
-    &.walk {
-      background: map-get($PROPERTY_COLORS, 'reachablePopulationWalk');
-    }
-
-    &.bike {
-      background: map-get($PROPERTY_COLORS, 'reachablePopulationBike');
+    &.high-value {
+      background: map-get($VISUALIZATION_COLORS, 'HIGH');
     }
   }
 }
@@ -57,4 +53,16 @@
 .header-actions {
   display: flex;
   gap: 8px;
+}
+
+.high-value {
+  color: #4caf50;  // VISUALIZATION_COLORS.HIGH
+}
+
+.medium-value {
+  color: #ffc107;  // VISUALIZATION_COLORS.MEDIUM
+}
+
+.low-value {
+  color: #f44336;  // VISUALIZATION_COLORS.LOW
 }

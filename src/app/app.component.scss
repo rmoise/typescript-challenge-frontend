@@ -7,6 +7,10 @@
     width: 100vw;
     height: 100vh;
     z-index: 1;
+
+    .maplibregl-canvas {
+      transition: all 0.3s ease-in-out;
+    }
   }
 
   .sidebar {
@@ -46,6 +50,11 @@
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     z-index: 2;
+    transition: opacity 0.3s ease-in-out;
+
+    &.hidden {
+      opacity: 0;
+    }
 
     h4 {
       margin: 0 0 8px 0;

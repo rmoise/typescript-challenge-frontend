@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core'
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, Signal } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { Store, select } from '@ngrx/store'
 import { Map, GeoJSONSource, Popup, LngLatBounds } from 'maplibre-gl'
 import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatSelectModule } from '@angular/material/select'
+import { MatIconModule } from '@angular/material/icon'
+import { MatButtonModule } from '@angular/material/button'
 import { environment } from 'src/environments/environment'
 import { RootState } from 'src/store/app.store'
 import { TransitLinesActions } from 'src/store/transit-lines/transit-lines.actions'
@@ -13,6 +15,15 @@ import { catchError, of, tap } from 'rxjs'
 import { LoggerService } from '../services/logger.service'
 import { FeatureCollection, Point, Feature } from 'geojson'
 import { PROPERTY_COLORS } from 'src/constants/colors'
+import { VISUALIZATION_COLORS } from 'src/constants/colors'
+import { VisualizationProperty } from 'src/types/visualization'
+import { NgIf } from '@angular/common'
+
+interface LegendRange {
+  color: string;
+  label: string;
+  range: string;
+}
 
 @Component({
   selector: 'app-root',
@@ -20,7 +31,14 @@ import { PROPERTY_COLORS } from 'src/constants/colors'
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [RouterOutlet, MatFormFieldModule, MatSelectModule],
+  imports: [
+    RouterOutlet,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatIconModule,
+    MatButtonModule,
+    NgIf
+  ],
 })
 export class AppComponent implements OnInit {
   // Define constants for source and layer IDs
@@ -36,6 +54,39 @@ export class AppComponent implements OnInit {
   private popup: Popup
 
   visualizationProperty = this.store.selectSignal(fromTransitLines.visualizationProperty)
+  selectedStopId = this.store.selectSignal(fromTransitLines.selectedStopId)
+
+  readonly legendRanges: Signal<LegendRange[]> = computed(() => {
+    const property = this.visualizationProperty();
+    const stopId = this.selectedStopId();
+
+    // Return empty array if visualization is off and no stop is selected
+    if (property === 'off' && !stopId) return [];
+
+    // If visualization is off but stop is selected, use peopleOn as default property
+    const activeProperty = property === 'off' ? 'peopleOn' : property;
+
+    const maxValues = this.store.selectSignal(fromTransitLines.maxStopValues)();
+    const maxValue = maxValues[activeProperty];
+
+    return [
+      {
+        color: VISUALIZATION_COLORS.LOW,
+        label: 'Low',
+        range: `0 - ${Math.floor(maxValue * 0.33)}`
+      },
+      {
+        color: VISUALIZATION_COLORS.MEDIUM,
+        label: 'Medium',
+        range: `${Math.floor(maxValue * 0.33)} - ${Math.floor(maxValue * 0.66)}`
+      },
+      {
+        color: VISUALIZATION_COLORS.HIGH,
+        label: 'High',
+        range: `${Math.floor(maxValue * 0.66)} - ${maxValue}`
+      }
+    ];
+  });
 
   constructor(
     private store: Store<RootState>,
@@ -255,30 +306,30 @@ export class AppComponent implements OnInit {
 
       this.store.select(fromTransitLines.visualizationProperty).subscribe((property) => {
         if (this.map.getLayer(this.STOPS_LAYER_ID)) {
+          const maxValues = this.store.selectSignal(fromTransitLines.maxStopValues)();
+
           this.map.setPaintProperty(this.STOPS_LAYER_ID, 'circle-color', [
             'case',
             ['boolean', ['feature-state', 'hover'], false],
-            '#ffff00',
+            VISUALIZATION_COLORS.HIGH,
             [
               'case',
               ['==', ['get', '_id'], ['get', 'selectedStopId']],
-              '#00ff00',
-              property === 'off' ? '#666666' : PROPERTY_COLORS[property],
+              VISUALIZATION_COLORS.MEDIUM,
+              property === 'off' ? '#666666' : [
+                'interpolate',
+                ['linear'],
+                ['get', property],
+                0, VISUALIZATION_COLORS.LOW,
+                maxValues[property] * 0.33, VISUALIZATION_COLORS.LOW,
+                maxValues[property] * 0.66, VISUALIZATION_COLORS.MEDIUM,
+                maxValues[property], VISUALIZATION_COLORS.HIGH
+              ]
             ],
           ])
 
           // Only update the size for non-hover, non-selected states
-          this.map.setPaintProperty(this.STOPS_LAYER_ID, 'circle-radius', [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            10,
-            [
-              'case',
-              ['==', ['get', '_id'], ['get', 'selectedStopId']],
-              12,
-              property === 'off' ? 6 : ['interpolate', ['linear'], ['get', property], 0, 6, 1000, 20],
-            ],
-          ])
+          this.updateCircleSize(property)
         }
       })
     })
@@ -288,5 +339,59 @@ export class AppComponent implements OnInit {
     property: 'off' | 'peopleOn' | 'peopleOff' | 'reachablePopulationWalk' | 'reachablePopulationBike'
   ): void {
     this.store.dispatch(TransitLinesActions.SetVisualizationProperty({ property }))
+  }
+
+  private updateCircleSize(property: VisualizationProperty) {
+    if (!this.map.getLayer(this.STOPS_LAYER_ID)) return;
+
+    this.map.setPaintProperty(this.STOPS_LAYER_ID, 'circle-radius', [
+      'case',
+      ['boolean', ['feature-state', 'hover'], false],
+      15,
+      [
+        'case',
+        ['==', ['get', '_id'], ['get', 'selectedStopId']],
+        12,
+        property === 'off'
+          ? 8
+          : ['interpolate',
+              ['linear'],
+              ['get', property],
+              0, 6,
+              100, 8,
+              500, 10,
+              1000, 12,
+              5000, 14,
+              10000, 16,
+              50000, 18,
+              100000, 20
+            ]
+      ]
+    ]);
+  }
+
+  getPropertyLabel(property: VisualizationProperty): string {
+    if (property === 'off' && this.selectedStopId()) {
+      return 'Stop Statistics';
+    }
+
+    switch (property) {
+      case 'peopleOn':
+        return 'People Getting On';
+      case 'peopleOff':
+        return 'People Getting Off';
+      case 'reachablePopulationWalk':
+        return 'Population Within Walking Distance';
+      case 'reachablePopulationBike':
+        return 'Population Within Biking Distance';
+      default:
+        return '';
+    }
+  }
+
+  toggleVisualization(): void {
+    const currentProperty = this.visualizationProperty();
+    const newProperty: VisualizationProperty = currentProperty === 'off' ? 'peopleOn' : 'off';
+    this.store.dispatch(TransitLinesActions.SetVisualizationProperty({ property: newProperty }));
   }
 }

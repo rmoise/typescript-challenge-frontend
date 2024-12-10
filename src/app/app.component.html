@@ -1,23 +1,13 @@
 <div #map class="map"></div>
 
-<div class="map-legend">
-  <h4>Legend</h4>
-  <div class="legend-item">
-    <span class="dot people-on"></span>
-    <span>People Getting On</span>
-  </div>
-  <div class="legend-item">
-    <span class="dot people-off"></span>
-    <span>People Getting Off</span>
-  </div>
-  <div class="legend-item">
-    <span class="dot walk"></span>
-    <span>Within 30min Walk</span>
-  </div>
-  <div class="legend-item">
-    <span class="dot bike"></span>
-    <span>Within 30min Bike</span>
-  </div>
+<div class="map-legend" *ngIf="visualizationProperty() !== 'off' || selectedStopId()">
+  <h4>{{ getPropertyLabel(visualizationProperty()) }}</h4>
+  @for (range of legendRanges(); track range.label) {
+    <div class="legend-item">
+      <span class="dot" [style.background-color]="range.color"></span>
+      <span>{{ range.label }}: {{ range.range }}</span>
+    </div>
+  }
 </div>
 
 <div class="sidebar">
@@ -25,6 +15,11 @@
 </div>
 
 <div class="map-controls">
+  <button mat-icon-button
+          [color]="visualizationProperty() === 'off' ? '' : 'primary'"
+          (click)="toggleVisualization()">
+    <mat-icon>visibility</mat-icon>
+  </button>
   <mat-form-field>
     <mat-label>Visualization</mat-label>
     <mat-select [value]="visualizationProperty()" (valueChange)="onVisualizationPropertyChange($event)">

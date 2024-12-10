@@ -46,9 +46,9 @@ export class DetailComponent {
   }
 
   getColorClass(percentage: number): string {
-    if (percentage >= 80) return 'high-value'
-    if (percentage >= 40) return 'medium-value'
-    return 'low-value'
+    if (percentage >= 66) return 'high-value';
+    if (percentage >= 33) return 'medium-value';
+    return 'low-value';
   }
 
   clearSelection(): void {

@@ -10,6 +10,7 @@ import { TransitLine } from 'src/types/line'
 import { MatDialog } from '@angular/material/dialog'
 import { AddStopDialogComponent } from '../add-stop/add-stop-dialog.component'
 import { MatDialogModule } from '@angular/material/dialog'
+import { AddLineDialogComponent } from '../add-line/add-line-dialog.component'
 
 @Component({
   selector: 'app-home',
@@ -36,6 +37,13 @@ export class HomeComponent {
 
   openAddStopDialog(): void {
     this.dialog.open(AddStopDialogComponent, {
+      width: '400px',
+      disableClose: true
+    })
+  }
+
+  openAddLineDialog(): void {
+    this.dialog.open(AddLineDialogComponent, {
       width: '400px',
       disableClose: true
     })

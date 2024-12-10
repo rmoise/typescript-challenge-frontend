@@ -1,8 +1,13 @@
 <div class="home-header">
   <h1 class="title">All Lines</h1>
-  <button mat-button (click)="openAddStopDialog()">
-    <mat-icon>add</mat-icon> Add Stop
-  </button>
+  <div class="header-actions">
+    <button mat-button (click)="openAddLineDialog()">
+      <mat-icon>add_circle</mat-icon> New Line
+    </button>
+    <button mat-button (click)="openAddStopDialog()">
+      <mat-icon>add</mat-icon> Add Stop
+    </button>
+  </div>
 </div>
 
 <div class="lines-list">

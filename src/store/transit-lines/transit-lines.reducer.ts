@@ -101,5 +101,13 @@ export const transitLinesReducer = createReducer(
       },
       state
     );
-  })
+  }),
+
+  on(TransitLinesActions.CreateNewLine, (state, { id }) => adapter.addOne(
+    {
+      id,
+      stops: [],
+    },
+    state
+  ))
 )

@@ -38,15 +38,6 @@ export class TransitLinesEffects {
     )
   )
 
-  initApp$ = createEffect(() =>
-    of(true).pipe(
-      map(() => {
-        const savedId = localStorage.getItem('selectedStopId')
-        return savedId ? TransitLinesActions.SelectStop({ selectedStopId: savedId }) : { type: '[Transit Lines] Init' }
-      })
-    )
-  )
-
   constructor(
     private actions$: Actions,
     private router: Router

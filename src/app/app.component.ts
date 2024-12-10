@@ -113,9 +113,6 @@ export class AppComponent implements OnInit {
           this.store.dispatch(TransitLinesActions.AddLine({ line }))
         }
       })
-
-    // Clear selected stop on app initialization
-    this.store.dispatch(TransitLinesActions.SelectStop({ selectedStopId: null }))
   }
 
   ngOnInit(): void {

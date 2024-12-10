@@ -7,6 +7,8 @@ import { RootState } from 'src/store/app.store'
 import { TransitLinesActions } from 'src/store/transit-lines/transit-lines.actions'
 import { fromTransitLines } from 'src/store/transit-lines/transit-lines.selectors'
 import { TransitStop } from 'src/types/line'
+import { MatDialog } from '@angular/material/dialog'
+import { EditStopDialogComponent } from '../edit-stop/edit-stop-dialog.component'
 
 @Component({
   selector: 'app-detail',
@@ -27,7 +29,10 @@ export class DetailComponent {
   }>
   readonly visualizationProperty = this.store.selectSignal(fromTransitLines.visualizationProperty);
 
-  constructor(private store: Store<RootState>) {
+  constructor(
+    private store: Store<RootState>,
+    private dialog: MatDialog
+  ) {
     this.selectedStop = this.store.selectSignal(fromTransitLines.selectedStop)
     this.stopName = computed(() => {
       const stop = this.selectedStop()
@@ -80,5 +85,16 @@ export class DetailComponent {
   getMaxValue(): number {
     const maxValues = this.maxValues();
     return maxValues[this.visualizationProperty()];
+  }
+
+  editStop(): void {
+    const stop = this.selectedStop();
+    if (stop) {
+      this.dialog.open(EditStopDialogComponent, {
+        width: '400px',
+        data: { stop },
+        disableClose: true
+      });
+    }
   }
 }

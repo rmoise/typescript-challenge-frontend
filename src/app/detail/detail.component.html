@@ -1,6 +1,9 @@
 <div class="detail-header">
   <h1 class="title">{{ stopName() }}</h1>
   <div class="header-actions">
+    <button mat-icon-button (click)="editStop()" color="primary">
+      <mat-icon>edit</mat-icon>
+    </button>
     <button mat-icon-button (click)="removeStop()" color="warn">
       <mat-icon>delete</mat-icon>
     </button>

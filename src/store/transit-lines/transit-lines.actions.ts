@@ -10,4 +10,12 @@ export namespace TransitLinesActions {
     '[TRANSIT LINES] Set visualization property',
     props<{ property: 'off' | 'peopleOn' | 'peopleOff' | 'reachablePopulationWalk' | 'reachablePopulationBike' }>()
   )
+  export const EditStop = createAction(
+    '[TRANSIT LINES] Edit a stop',
+    props<{
+      lineId: string;
+      stopId: string;
+      updates: Partial<TransitStop>;
+    }>()
+  )
 }

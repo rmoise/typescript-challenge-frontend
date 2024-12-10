@@ -79,5 +79,27 @@ export const transitLinesReducer = createReducer(
   on(TransitLinesActions.SetVisualizationProperty, (state, { property }) => ({
     ...state,
     visualizationProperty: property,
-  }))
+  })),
+
+  on(TransitLinesActions.EditStop, (state, { lineId, stopId, updates }) => {
+    const line = state.entities[lineId];
+    if (!line) return state;
+
+    const updatedStops = line.stops.map(stop =>
+      stop.id === stopId ? { ...stop, ...updates } : stop
+    );
+
+    const updatedLine = {
+      ...line,
+      stops: updatedStops,
+    };
+
+    return adapter.updateOne(
+      {
+        id: lineId,
+        changes: updatedLine,
+      },
+      state
+    );
+  })
 )

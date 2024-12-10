@@ -1,0 +1,1 @@
+export type VisualizationProperty = 'off' | 'peopleOn' | 'peopleOff' | 'reachablePopulationWalk' | 'reachablePopulationBike' 

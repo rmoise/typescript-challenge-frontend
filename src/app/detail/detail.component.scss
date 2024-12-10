@@ -1,4 +1,5 @@
 @import 'mixins';
+@import '../styles/colors';
 
 :host {
   @include flex-column();
@@ -14,4 +15,46 @@
       margin: calc(-1 * var(--small-gap));
     }
   }
+}
+
+.stat-bar {
+  margin: 10px 0;
+
+  .label {
+    margin-bottom: 4px;
+  }
+
+  .bar-container {
+    width: 100%;
+    background: #eee;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .bar {
+    height: 100%;
+    transition: width 0.3s ease;
+
+    &.people-on {
+      background: map-get($PROPERTY_COLORS, 'peopleOn');
+    }
+
+    &.people-off {
+      background: map-get($PROPERTY_COLORS, 'peopleOff');
+    }
+
+    &.walk {
+      background: map-get($PROPERTY_COLORS, 'reachablePopulationWalk');
+    }
+
+    &.bike {
+      background: map-get($PROPERTY_COLORS, 'reachablePopulationBike');
+    }
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
 }

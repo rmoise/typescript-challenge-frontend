@@ -1,10 +1,61 @@
 <div class="detail-header">
   <h1 class="title">{{ stopName() }}</h1>
-  <button mat-icon-button (click)="clearSelection()">
-    <mat-icon>clear</mat-icon>
-  </button>
+  <div class="header-actions">
+    <button mat-icon-button (click)="removeStop()" color="warn">
+      <mat-icon>delete</mat-icon>
+    </button>
+    <button mat-icon-button (click)="clearSelection()">
+      <mat-icon>clear</mat-icon>
+    </button>
+  </div>
 </div>
 
-<span>Its very empty here (ಠ_ಠ)</span>
+<div class="stop-details" *ngIf="selectedStop()">
+  <div class="stat-item">
+    <h3>Passenger Statistics</h3>
+    <div class="stat-bar">
+      <div class="label">
+        People getting on: {{ selectedStop().peopleOn }}
+      </div>
+      <div class="bar-container">
+        <div class="bar people-on"
+             [ngStyle]="{'width': getPercentage(selectedStop().peopleOn, maxValues().peopleOn) + '%'}">
+        </div>
+      </div>
+    </div>
+    <div class="stat-bar">
+      <div class="label">
+        People getting off: {{ selectedStop().peopleOff }}
+      </div>
+      <div class="bar-container">
+        <div class="bar people-off"
+             [ngStyle]="{'width': getPercentage(selectedStop().peopleOff, maxValues().peopleOff) + '%'}">
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!-- TODO add more info about the stop -->
+  <div class="stat-item">
+    <h3>Reachable Population</h3>
+    <div class="stat-bar">
+      <div class="label">
+        Within 30min walk: {{ selectedStop().reachablePopulationWalk }}
+      </div>
+      <div class="bar-container">
+        <div class="bar walk"
+             [ngStyle]="{'width': getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk) + '%'}">
+        </div>
+      </div>
+    </div>
+    <div class="stat-bar">
+      <div class="label">
+        Within 30min bike: {{ selectedStop().reachablePopulationBike }}
+      </div>
+      <div class="bar-container">
+        <div class="bar bike"
+             [ngStyle]="{'width': getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike) + '%'}">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

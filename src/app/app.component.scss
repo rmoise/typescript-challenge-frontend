@@ -1,9 +1,12 @@
 @import 'mixins';
+@import 'styles/colors';
 
 :host {
   .map {
+    position: absolute;
     width: 100vw;
     height: 100vh;
+    z-index: 1;
   }
 
   .sidebar {
@@ -17,8 +20,78 @@
     background: var(--background-color);
     border-radius: var(--border-radius);
     @include shadow();
+    z-index: 2;
     > * {
       flex: 1 1 auto;
     }
+  }
+
+  .map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .map-legend {
+    position: absolute;
+    bottom: 60px;
+    right: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+      font-size: 12px;
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+
+        &.people-on {
+          background: map-get($PROPERTY_COLORS, 'peopleOn');
+        }
+
+        &.people-off {
+          background: map-get($PROPERTY_COLORS, 'peopleOff');
+        }
+
+        &.walk {
+          background: map-get($PROPERTY_COLORS, 'reachablePopulationWalk');
+        }
+
+        &.bike {
+          background: map-get($PROPERTY_COLORS, 'reachablePopulationBike');
+        }
+      }
+    }
+  }
+
+  :global(.maplibregl-popup) {
+    z-index: 3;
+  }
+
+  :global(.maplibregl-popup-content) {
+    padding: 10px;
+    border-radius: 4px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 }

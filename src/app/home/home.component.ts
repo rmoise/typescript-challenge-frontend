@@ -21,6 +21,7 @@ import { MatDialogModule } from '@angular/material/dialog'
 })
 export class HomeComponent {
   readonly lines: Signal<TransitLine[]>
+  expandedLines = new Set<string>()
 
   constructor(
     private store: Store<RootState>,
@@ -38,5 +39,17 @@ export class HomeComponent {
       width: '400px',
       disableClose: true
     })
+  }
+
+  toggleLineExpansion(lineId: string): void {
+    if (this.expandedLines.has(lineId)) {
+      this.expandedLines.delete(lineId)
+    } else {
+      this.expandedLines.add(lineId)
+    }
+  }
+
+  isLineExpanded(lineId: string): boolean {
+    return this.expandedLines.has(lineId)
   }
 }

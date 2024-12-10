@@ -20,9 +20,32 @@
     padding: var(--default-gap);
 
     .line-header {
-      @include flex-row();
-      @include flex-align(flex-start, center);
-      gap: var(--small-gap);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 8px;
+
+      .subtitle {
+        margin-right: 16px;
+      }
+
+      .stops-count {
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+
+      .expand-icon {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+
+        &.expanded {
+          transform: rotate(180deg);
+        }
+      }
     }
 
     .stop-item {
@@ -49,4 +72,9 @@
     align-items: center;
     margin-bottom: var(--default-gap);
   }
+}
+
+.stops-list {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
 }

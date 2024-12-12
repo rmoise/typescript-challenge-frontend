@@ -46,3 +46,58 @@ h5,
 h6 {
   margin: 0;
 }
+
+.filter-dialog {
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-elevation: 24;
+    --mdc-dialog-container-shadow-color: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.cdk-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.32) !important;
+  cursor: pointer !important;
+}
+
+.cdk-overlay-container {
+  z-index: 1000;
+}
+
+.dialog-container {
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-elevation: 24;
+    --mdc-dialog-container-shadow-color: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.mat-dialog-container {
+  pointer-events: auto !important;
+}
+
+.cdk-overlay-pane {
+  pointer-events: auto !important;
+}
+
+.mat-dialog-content {
+  pointer-events: auto !important;
+}
+
+.dialog-backdrop {
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.error-snackbar {
+  background: #f44336;
+  color: white;
+}

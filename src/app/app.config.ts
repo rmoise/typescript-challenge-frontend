@@ -1,4 +1,4 @@
-import { ApplicationConfig, isDevMode } from '@angular/core'
+import { ApplicationConfig, importProvidersFrom, isDevMode } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { provideEffects } from '@ngrx/effects'
 import { provideStore } from '@ngrx/store'
@@ -7,6 +7,7 @@ import { effects, reducers } from 'src/store/app.store'
 import { routes } from './app.routes'
 import { provideHttpClient } from '@angular/common/http'
 import { provideAnimations } from '@angular/platform-browser/animations'
+import { MatSnackBarModule } from '@angular/material/snack-bar'
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,6 +22,7 @@ export const appConfig: ApplicationConfig = {
       trace: false,
       traceLimit: 75,
     }),
-    provideAnimations()
+    provideAnimations(),
+    importProvidersFrom(MatSnackBarModule),
   ],
 }

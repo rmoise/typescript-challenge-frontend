@@ -2,105 +2,124 @@
 @import 'styles/colors';
 
 :host {
-  .map {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1;
+  display: block;
+  height: 100%;
+}
 
-    .maplibregl-canvas {
-      transition: all 0.3s ease-in-out;
-    }
+main {
+  height: 100%;
+  position: relative;
+}
+
+.map-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.map {
+  height: 100%;
+  width: 100%;
+}
+
+.visualization-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar {
+  @include flex-column();
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: var(--default-gap);
+  padding: var(--default-gap);
+  width: 400px;
+  background: var(--background-color);
+  border-radius: var(--border-radius);
+  @include shadow();
+  z-index: 2;
+  > * {
+    flex: 1 1 auto;
+  }
+}
+
+.map-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.map-legend {
+  position: absolute;
+  bottom: 60px;
+  right: 20px;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  transition: opacity 0.3s ease-in-out;
+
+  &.hidden {
+    opacity: 0;
   }
 
-  .sidebar {
-    @include flex-column();
-    position: absolute;
-    left: 0;
-    top: 0;
-    margin: var(--default-gap);
-    padding: var(--default-gap);
-    width: 400px;
-    background: var(--background-color);
-    border-radius: var(--border-radius);
-    @include shadow();
-    z-index: 2;
-    > * {
-      flex: 1 1 auto;
-    }
+  h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 500;
   }
 
-  .map-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2;
-    background: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    font-size: 12px;
 
-  .map-legend {
-    position: absolute;
-    bottom: 60px;
-    right: 20px;
-    background: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    z-index: 2;
-    transition: opacity 0.3s ease-in-out;
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
 
-    &.hidden {
-      opacity: 0;
-    }
+      &.people-on {
+        background: map-get($PROPERTY_COLORS, 'peopleOn');
+      }
 
-    h4 {
-      margin: 0 0 8px 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
+      &.people-off {
+        background: map-get($PROPERTY_COLORS, 'peopleOff');
+      }
 
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin: 4px 0;
-      font-size: 12px;
+      &.walk {
+        background: map-get($PROPERTY_COLORS, 'reachablePopulationWalk');
+      }
 
-      .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        margin-right: 8px;
-
-        &.people-on {
-          background: map-get($PROPERTY_COLORS, 'peopleOn');
-        }
-
-        &.people-off {
-          background: map-get($PROPERTY_COLORS, 'peopleOff');
-        }
-
-        &.walk {
-          background: map-get($PROPERTY_COLORS, 'reachablePopulationWalk');
-        }
-
-        &.bike {
-          background: map-get($PROPERTY_COLORS, 'reachablePopulationBike');
-        }
+      &.bike {
+        background: map-get($PROPERTY_COLORS, 'reachablePopulationBike');
       }
     }
   }
+}
 
-  :global(.maplibregl-popup) {
-    z-index: 3;
-  }
+:global(.maplibregl-popup) {
+  z-index: 3;
+}
 
-  :global(.maplibregl-popup-content) {
-    padding: 10px;
-    border-radius: 4px;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
+:global(.maplibregl-popup-content) {
+  padding: 10px;
+  border-radius: 4px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

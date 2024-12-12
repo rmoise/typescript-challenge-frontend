@@ -1,47 +1,29 @@
 <div class="detail-header">
+  <button mat-icon-button (click)="clearSelection()" class="close-button">
+    <mat-icon>clear</mat-icon>
+  </button>
   <h1 class="title">{{ stopName() }}</h1>
-  <div class="header-actions">
-    <button mat-icon-button (click)="editStop()" color="primary">
-      <mat-icon>edit</mat-icon>
-    </button>
-    <button mat-icon-button (click)="removeStop()" color="warn">
-      <mat-icon>delete</mat-icon>
-    </button>
-    <button mat-icon-button (click)="clearSelection()">
-      <mat-icon>clear</mat-icon>
-    </button>
-  </div>
 </div>
 
 <div class="stop-details" *ngIf="selectedStop()">
   <div class="stat-item">
     <h3>Passenger Statistics</h3>
     <div class="stat-bar">
-      <div class="label">
-        People getting on: {{ selectedStop().peopleOn }}
-      </div>
+      <div class="label">People getting on: {{ selectedStop().peopleOn }}</div>
       <div class="bar-container">
-        <div class="bar"
-             [ngClass]="[
-               'people-on',
-               getColorClass(getPercentage(selectedStop().peopleOn, maxValues().peopleOn))
-             ]"
-             [ngStyle]="{'width': getPercentage(selectedStop().peopleOn, maxValues().peopleOn) + '%'}">
-        </div>
+        <div
+          class="bar"
+          [ngClass]="['people-on', getColorClass(getPercentage(selectedStop().peopleOn, maxValues().peopleOn))]"
+          [ngStyle]="{ width: getPercentage(selectedStop().peopleOn, maxValues().peopleOn) + '%' }"></div>
       </div>
     </div>
     <div class="stat-bar">
-      <div class="label">
-        People getting off: {{ selectedStop().peopleOff }}
-      </div>
+      <div class="label">People getting off: {{ selectedStop().peopleOff }}</div>
       <div class="bar-container">
-        <div class="bar"
-             [ngClass]="[
-               'people-off',
-               getColorClass(getPercentage(selectedStop().peopleOff, maxValues().peopleOff))
-             ]"
-             [ngStyle]="{'width': getPercentage(selectedStop().peopleOff, maxValues().peopleOff) + '%'}">
-        </div>
+        <div
+          class="bar"
+          [ngClass]="['people-off', getColorClass(getPercentage(selectedStop().peopleOff, maxValues().peopleOff))]"
+          [ngStyle]="{ width: getPercentage(selectedStop().peopleOff, maxValues().peopleOff) + '%' }"></div>
       </div>
     </div>
   </div>
@@ -49,32 +31,41 @@
   <div class="stat-item">
     <h3>Reachable Population</h3>
     <div class="stat-bar">
-      <div class="label">
-        Within 30min walk: {{ selectedStop().reachablePopulationWalk }}
-      </div>
+      <div class="label">Within 30min walk: {{ selectedStop().reachablePopulationWalk }}</div>
       <div class="bar-container">
-        <div class="bar"
-             [ngClass]="[
-               'walk',
-               getColorClass(getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk))
-             ]"
-             [ngStyle]="{'width': getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk) + '%'}">
-        </div>
+        <div
+          class="bar"
+          [ngClass]="[
+            'walk',
+            getColorClass(getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk)),
+          ]"
+          [ngStyle]="{
+            width: getPercentage(selectedStop().reachablePopulationWalk, maxValues().reachablePopulationWalk) + '%',
+          }"></div>
       </div>
     </div>
     <div class="stat-bar">
-      <div class="label">
-        Within 30min bike: {{ selectedStop().reachablePopulationBike }}
-      </div>
+      <div class="label">Within 30min bike: {{ selectedStop().reachablePopulationBike }}</div>
       <div class="bar-container">
-        <div class="bar"
-             [ngClass]="[
-               'bike',
-               getColorClass(getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike))
-             ]"
-             [ngStyle]="{'width': getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike) + '%'}">
-        </div>
+        <div
+          class="bar"
+          [ngClass]="[
+            'bike',
+            getColorClass(getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike)),
+          ]"
+          [ngStyle]="{
+            width: getPercentage(selectedStop().reachablePopulationBike, maxValues().reachablePopulationBike) + '%',
+          }"></div>
       </div>
     </div>
+  </div>
+
+  <div class="action-buttons">
+    <button mat-button class="subtle-button" (click)="editStop()">
+      Edit
+    </button>
+    <button mat-button class="subtle-button" (click)="removeStop()">
+      Delete
+    </button>
   </div>
 </div>

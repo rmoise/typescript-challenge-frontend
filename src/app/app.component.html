@@ -15,9 +15,7 @@
 </div>
 
 <div class="map-controls">
-  <button mat-icon-button
-          [color]="visualizationProperty() === 'off' ? '' : 'primary'"
-          (click)="toggleVisualization()">
+  <button mat-icon-button [color]="visualizationProperty() === 'off' ? '' : 'primary'" (click)="toggleVisualization()">
     <mat-icon>visibility</mat-icon>
   </button>
   <mat-form-field>
@@ -31,4 +29,3 @@
     </mat-select>
   </mat-form-field>
 </div>
-

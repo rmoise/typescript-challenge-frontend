@@ -9,14 +9,16 @@ import { MatButtonModule } from '@angular/material/button'
 import { environment } from 'src/environments/environment'
 import { RootState } from 'src/store/app.store'
 import { TransitLinesActions } from 'src/store/transit-lines/transit-lines.actions'
-import { TransitLinesService } from 'src/services/transit-lines.service'
 import { fromTransitLines } from 'src/store/transit-lines/transit-lines.selectors'
 import { catchError, of, tap } from 'rxjs'
 import { LoggerService } from '../services/logger.service'
-import { FeatureCollection, Point, Feature } from 'geojson'
+import { FeatureCollection, Point } from 'geojson'
 import { VISUALIZATION_COLORS } from 'src/constants/colors'
 import { VisualizationProperty } from 'src/types/visualization'
 import { NgIf } from '@angular/common'
+import { MatDialog } from '@angular/material/dialog'
+import { ManageLinesDialogComponent } from './manage-lines/manage-lines-dialog.component'
+import { ApiService } from 'src/services/api.service'
 
 interface LegendRange {
   color: string
@@ -82,27 +84,30 @@ export class AppComponent implements OnInit {
 
   constructor(
     private store: Store<RootState>,
-    private transitLinesService: TransitLinesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private dialog: MatDialog,
+    private apiService: ApiService
   ) {
     this.popup = new Popup({
       closeButton: false,
       closeOnClick: false,
     })
 
-    this.transitLinesService
-      .getTransitLine('u9')
+    this.apiService
+      .getTransitLines()
       .pipe(
-        tap((line) => this.logger.log('Received from API:', line)),
+        tap((lines) => this.logger.log('Received lines from API:', lines)),
         catchError((error) => {
-          this.logger.error('Error fetching transit line:', error)
-          return of(null)
+          this.logger.error('Error fetching transit lines:', error)
+          return of([])
         })
       )
-      .subscribe((line) => {
-        if (line) {
-          this.logger.log('Dispatching to store:', line)
-          this.store.dispatch(TransitLinesActions.AddLine({ line }))
+      .subscribe((lines) => {
+        if (lines) {
+          this.logger.log('Dispatching lines to store:', lines)
+          lines.forEach((line) => {
+            this.store.dispatch(TransitLinesActions.AddLine({ line }))
+          })
         }
       })
   }
@@ -121,42 +126,120 @@ export class AppComponent implements OnInit {
 
     // Wait for both map load and initial data
     this.map.once('load', () => {
+      // Set initial bounds to show all lines
+      this.store
+        .select(fromTransitLines.selectAll)
+        .pipe(
+          tap((lines) => {
+            if (lines.length > 0) {
+              const bounds = new LngLatBounds()
+              // Include all stops from all lines in the bounds
+              lines.forEach((line) => {
+                line.stops.forEach((stop) => {
+                  bounds.extend([stop.lng, stop.lat])
+                })
+              })
+              this.map.fitBounds(bounds, {
+                padding: 50,
+                maxZoom: 13,
+                duration: 1000,
+              })
+            }
+          })
+        )
+        .subscribe()
+        .unsubscribe()
+
+      // Subscribe to stop selection changes to handle both map and sidebar clicks
+      this.store.select(fromTransitLines.selectedStopId).subscribe((stopId) => {
+        if (stopId) {
+          console.log('Selected stop ID:', stopId)
+          this.store
+            .select(fromTransitLines.selectAll)
+            .pipe(
+              tap((lines) => {
+                console.log(
+                  'Looking for stop in lines:',
+                  lines.map((l) => ({ id: l.id, stops: l.stops.map((s) => s.id) }))
+                )
+                // Find the line that contains the selected stop
+                const line = lines.find((line) =>
+                  line.stops.some((stop) => {
+                    const match = stop.id === stopId
+                    if (match) {
+                      console.log('Found stop', stopId, 'in line', line.id)
+                    }
+                    return match
+                  })
+                )
+
+                if (line) {
+                  console.log(
+                    'Focusing on line:',
+                    line.id,
+                    'with stops:',
+                    line.stops.map((s) => s.id)
+                  )
+                  const bounds = new LngLatBounds()
+                  // Only focus on the stops of the line that contains the selected stop
+                  line.stops.forEach((stop) => {
+                    bounds.extend([stop.lng, stop.lat])
+                  })
+                  this.map.fitBounds(bounds, {
+                    padding: 50,
+                    maxZoom: 15,
+                    duration: 1000,
+                  })
+                } else {
+                  console.warn('Stop not found in any line. Stop ID:', stopId)
+                }
+              })
+            )
+            .subscribe()
+            .unsubscribe()
+        }
+      })
+
       const stopsSource$ = this.store.pipe(select(fromTransitLines.stopsPointGeoJson))
 
       stopsSource$.subscribe((source) => {
         if (typeof source === 'string') return
 
         const sourceData = source as unknown as { data: FeatureCollection }
-        sourceData.data.features = sourceData.data.features.map((feature) => ({
-          ...feature,
-          id: feature.properties._id,
-        }))
 
-        const existingSource = this.map.getSource(this.STOPS_SOURCE_ID) as GeoJSONSource
-        if (existingSource) {
-          existingSource.setData(sourceData.data)
-        } else {
-          this.map.addSource(this.STOPS_SOURCE_ID, {
-            type: 'geojson',
-            data: sourceData.data,
-            promoteId: '_id',
-          })
-        }
+        // Add line ID to each stop's properties
+        this.store
+          .select(fromTransitLines.selectAll)
+          .pipe(
+            tap((lines) => {
+              sourceData.data.features = sourceData.data.features.map((feature) => {
+                // Find which line this stop belongs to
+                const lineId = lines.find((line) => line.stops.some((stop) => stop.id === feature.properties._id))?.id
 
-        // Fit bounds to the features after adding them
-        if (sourceData.data.features.length > 0) {
-          const bounds = new LngLatBounds()
-          sourceData.data.features.forEach((feature: Feature) => {
-            if (feature.geometry.type === 'Point') {
-              const point = feature.geometry as Point
-              bounds.extend(point.coordinates as [number, number])
-            }
-          })
-          this.map.fitBounds(bounds, {
-            padding: 50,
-            maxZoom: 13,
-          })
-        }
+                return {
+                  ...feature,
+                  id: feature.properties._id,
+                  properties: {
+                    ...feature.properties,
+                    lineId: lineId, // Add line ID to properties
+                  },
+                }
+              })
+
+              const existingSource = this.map.getSource(this.STOPS_SOURCE_ID) as GeoJSONSource
+              if (existingSource) {
+                existingSource.setData(sourceData.data)
+              } else {
+                this.map.addSource(this.STOPS_SOURCE_ID, {
+                  type: 'geojson',
+                  data: sourceData.data,
+                  promoteId: '_id',
+                })
+              }
+            })
+          )
+          .subscribe()
+          .unsubscribe()
       })
 
       this.setupStopsLayer()
@@ -169,7 +252,10 @@ export class AppComponent implements OnInit {
         if (features.length > 0) {
           const clickedStop = features[0]
           const stopId = clickedStop.properties._id
-          this.store.dispatch(TransitLinesActions.SelectStop({ selectedStopId: stopId }))
+          const currentStopId = this.selectedStopId()
+          if (stopId !== currentStopId) {
+            this.store.dispatch(TransitLinesActions.SelectStop({ selectedStopId: stopId }))
+          }
         }
       })
 
@@ -235,10 +321,99 @@ export class AppComponent implements OnInit {
         type: 'line',
         source: this.LINES_SOURCE_ID,
         paint: {
-          'line-color': '#0000ff',
-          'line-width': 3,
-          'line-opacity': 0.8,
+          'line-color': [
+            'match',
+            ['get', 'lineId'],
+            'u9',
+            '#0000ff', // Blue for U9
+            'u19',
+            '#ff0000', // Red for U19
+            '#666666', // Default gray
+          ],
+          'line-width': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            6, // Width when hovered
+            4, // Default width
+          ],
+          'line-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            0.9, // Opacity when hovered
+            0.7, // Default opacity
+          ],
         },
+      })
+
+      // Add hover effect for lines
+      let hoveredLineId: string | null = null
+
+      this.map.on('mousemove', this.LINES_LAYER_ID, (e) => {
+        if (e.features.length > 0) {
+          if (hoveredLineId) {
+            this.map.setFeatureState({ source: this.LINES_SOURCE_ID, id: hoveredLineId }, { hover: false })
+          }
+          hoveredLineId = e.features[0].properties.lineId
+          this.map.setFeatureState({ source: this.LINES_SOURCE_ID, id: hoveredLineId }, { hover: true })
+          this.map.getCanvas().style.cursor = 'pointer'
+        }
+      })
+
+      this.map.on('mouseleave', this.LINES_LAYER_ID, () => {
+        if (hoveredLineId) {
+          this.map.setFeatureState({ source: this.LINES_SOURCE_ID, id: hoveredLineId }, { hover: false })
+          hoveredLineId = null
+        }
+        this.map.getCanvas().style.cursor = ''
+      })
+
+      // Add click handler for lines
+      this.map.on('click', this.LINES_LAYER_ID, (e) => {
+        const features = this.map.queryRenderedFeatures(e.point, {
+          layers: [this.LINES_LAYER_ID],
+        })
+
+        if (features.length > 0) {
+          const clickedLine = features[0]
+          const lineId = clickedLine.properties.lineId
+          console.log('Clicked line ID:', lineId, 'Properties:', clickedLine.properties)
+
+          this.store
+            .select(fromTransitLines.selectAll)
+            .pipe(
+              tap((lines) => {
+                console.log(
+                  'Available lines:',
+                  lines.map((l) => ({ id: l.id, stops: l.stops.length }))
+                )
+                // Try to find the line by exact ID first, then try case-insensitive
+                let line =
+                  lines.find((l) => l.id === lineId) || lines.find((l) => l.id.toLowerCase() === lineId.toLowerCase())
+
+                if (line) {
+                  console.log('Found matching line:', line.id, 'with stops:', line.stops)
+                  const bounds = new LngLatBounds()
+                  line.stops.forEach((stop) => {
+                    bounds.extend([stop.lng, stop.lat])
+                  })
+                  this.map.fitBounds(bounds, {
+                    padding: 50,
+                    maxZoom: 15,
+                    duration: 1000,
+                  })
+                } else {
+                  console.warn(
+                    'No matching line found for ID:',
+                    lineId,
+                    'Available IDs:',
+                    lines.map((l) => l.id)
+                  )
+                }
+              })
+            )
+            .subscribe()
+            .unsubscribe()
+        }
       })
 
       this.store.select(fromTransitLines.visualizationProperty).subscribe((property) => {
@@ -247,7 +422,7 @@ export class AppComponent implements OnInit {
             'case',
             ['boolean', ['feature-state', 'hover'], false],
             VISUALIZATION_COLORS.HIGH,
-            ['get', 'visualizationColor']
+            ['get', 'visualizationColor'],
           ])
 
           // Only update the size for non-hover, non-selected states
@@ -339,35 +514,43 @@ export class AppComponent implements OnInit {
           'case',
           ['boolean', ['feature-state', 'hover'], false],
           VISUALIZATION_COLORS.HIGH,
-          ['get', 'visualizationColor']
+          ['get', 'visualizationColor'],
         ],
-        'circle-stroke-width': ['case',
+        'circle-stroke-width': [
+          'case',
           ['boolean', ['feature-state', 'hover'], false],
           2,
-          ['case', ['==', ['get', '_id'], ['get', 'selectedStopId']], 2, 0]
+          ['case', ['==', ['get', '_id'], ['get', 'selectedStopId']], 2, 0],
         ],
-        'circle-stroke-color': ['case',
+        'circle-stroke-color': [
+          'case',
           ['boolean', ['feature-state', 'hover'], false],
           '#ffffff',
-          ['case', ['==', ['get', '_id'], ['get', 'selectedStopId']], '#ffffff', 'transparent']
+          ['case', ['==', ['get', '_id'], ['get', 'selectedStopId']], '#ffffff', 'transparent'],
         ],
       },
     })
 
-    // Subscribe to selection changes to ensure the layer updates
+    let timeout: any
     this.store.select(fromTransitLines.selectedStopId).subscribe((selectedId) => {
-      if (this.map.getLayer(this.STOPS_LAYER_ID)) {
-        // Clear previous selection
-        const currentSelectedId = this.selectedStopId()
-        if (currentSelectedId && currentSelectedId !== selectedId) {
-          this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: currentSelectedId }, { selected: false })
-        }
-
-        // Set new selection
-        if (selectedId) {
-          this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: selectedId }, { selected: true })
-        }
+      if (timeout) {
+        clearTimeout(timeout)
       }
+
+      timeout = setTimeout(() => {
+        if (this.map.getLayer(this.STOPS_LAYER_ID)) {
+          const source = this.map.getSource(this.STOPS_SOURCE_ID) as GeoJSONSource
+          if (source) {
+            if (selectedId) {
+              this.map.setFeatureState({ source: this.STOPS_SOURCE_ID, id: selectedId }, { selected: true })
+            }
+          }
+        }
+      }, 50)
     })
+  }
+
+  openManageLines() {
+    this.dialog.open(ManageLinesDialogComponent)
   }
 }

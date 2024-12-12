@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { Observable } from 'rxjs'
+import { Observable, catchError, tap } from 'rxjs'
 import { TransitLine } from 'src/types/line'
 import { environment } from 'src/environments/environment'
 
@@ -10,9 +10,21 @@ import { environment } from 'src/environments/environment'
 export class TransitLinesService {
   private readonly baseUrl = environment.apiUrl
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Log the base URL during service initialization
+    console.log('API Base URL:', this.baseUrl);
+  }
 
   getTransitLine(id: string): Observable<TransitLine> {
-    return this.http.get<TransitLine>(`${this.baseUrl}/transit-lines/${id}`)
+    const url = `${this.baseUrl}/transit-lines/${id}`;
+    console.log('Requesting:', url);
+
+    return this.http.get<TransitLine>(url).pipe(
+      tap(response => console.log('API Response:', response)),
+      catchError(error => {
+        console.error('API Error:', error);
+        throw error;
+      })
+    );
   }
 } 

@@ -1,6 +1,6 @@
 import { createEntityAdapter, EntityState } from '@ngrx/entity'
 import { createReducer, on } from '@ngrx/store'
-import { TransitLine } from 'src/types/line'
+import { TransitLine, TransitStop } from 'src/types/line'
 import { TransitLinesActions } from './transit-lines.actions'
 
 export const TRANSIT_LINES_KEY = 'transit-lines'
@@ -8,13 +8,21 @@ export const TRANSIT_LINES_KEY = 'transit-lines'
 export interface TransitLinesState extends EntityState<TransitLine> {
   selectedStopId: string | null
   visualizationProperty: 'off' | 'peopleOn' | 'peopleOff' | 'reachablePopulationWalk' | 'reachablePopulationBike'
+  filteredStops: TransitStop[]
+  filterLoading: boolean
+  filterError: any
+  currentFilter: any
 }
 
 export const adapter = createEntityAdapter<TransitLine>()
 
 export const initialState: TransitLinesState = adapter.getInitialState({
   selectedStopId: null,
-  visualizationProperty: 'off' as const,
+  visualizationProperty: 'off',
+  filteredStops: [],
+  filterLoading: false,
+  filterError: null,
+  currentFilter: {}
 })
 
 export const transitLinesReducer = createReducer(
@@ -103,11 +111,36 @@ export const transitLinesReducer = createReducer(
     );
   }),
 
-  on(TransitLinesActions.CreateNewLine, (state, { id }) => adapter.addOne(
-    {
-      id,
-      stops: [],
-    },
-    state
-  ))
+  on(TransitLinesActions.FilterStops, (state, { filter }) => ({
+    ...state,
+    filterLoading: true,
+    filterError: null,
+    currentFilter: filter
+  })),
+
+  on(TransitLinesActions.LoadFilteredStopsSuccess, (state, { stops }) => ({
+    ...state,
+    filteredStops: stops,
+    filterLoading: false,
+    currentFilter: state.currentFilter
+  })),
+
+  on(TransitLinesActions.LoadFilteredStopsFailure, (state, { error }) => ({
+    ...state,
+    filterError: error,
+    filterLoading: false
+  })),
+
+  on(TransitLinesActions.CreateNewLineSuccess, (state, { line }) => {
+    // Make sure we have a valid line with stops
+    if (!line || !line.stops) {
+      console.error('Invalid line data received:', line);
+      return state;
+    }
+    return adapter.addOne(line, state);
+  }),
+
+  on(TransitLinesActions.DeleteLineSuccess, (state, { id }) =>
+    adapter.removeOne(id, state)
+  )
 )

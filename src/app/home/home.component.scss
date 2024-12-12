@@ -78,3 +78,35 @@
   overflow: hidden;
   transition: max-height 0.3s ease-out;
 }
+
+.home-container {
+  padding: 20px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+  }
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+}
+
+.fab-main {
+  background-color: #3f51b5;
+  color: white;
+}
+
+::ng-deep .mat-menu-panel {
+  border-radius: 4px;
+}

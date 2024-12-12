@@ -28,6 +28,14 @@ export namespace fromTransitLines {
     reachablePopulationBike: Math.max(...stops.map((stop) => stop.reachablePopulationBike)),
   }))
 
+  export const filteredStops = createSelector(transitLinesState, (state) => state.filteredStops)
+
+  export const filterLoading = createSelector(transitLinesState, (state) => state.filterLoading)
+
+  export const filterError = createSelector(transitLinesState, (state) => state.filterError)
+
+  export const currentFilter = createSelector(transitLinesState, (state) => state.currentFilter)
+
   /**
    * Mapbox source for the locations
    */
@@ -36,96 +44,120 @@ export namespace fromTransitLines {
     visualizationProperty,
     selectedStopId,
     maxStopValues,
-    (lines: TransitLine[], property: VisualizationProperty, selectedId: string | null, maxValues) => {
+    filteredStops,
+    (lines: TransitLine[], property: VisualizationProperty, selectedId: string | null, maxValues, filteredStops) => {
+      const allStops = lines.flatMap((line) => line.stops)
+
+      const stopsToShow = filteredStops.length > 0 ? filteredStops : allStops
+
       const result = {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
-          features: lines.flatMap((line) =>
-            line.stops.map((stop) => {
-              let visualizationColor = '#666666';
-              let strokeColor = 'transparent';
-              let strokeWidth = 0;
+          features: stopsToShow.map((stop) => {
+            let visualizationColor = '#666666'
+            let strokeColor = 'transparent'
+            let strokeWidth = 0
 
-              if (property !== 'off') {
-                const value = stop[property];
-                const maxValue = maxValues[property];
-                const percentage = (value / maxValue) * 100;
+            if (property !== 'off') {
+              const value = stop[property]
+              const maxValue = maxValues[property]
+              const percentage = (value / maxValue) * 100
 
-                if (percentage >= 66) {
-                  visualizationColor = '#4caf50'; // HIGH - Green
-                } else if (percentage >= 33) {
-                  visualizationColor = '#ffc107'; // MEDIUM - Yellow/Amber
-                } else {
-                  visualizationColor = '#f44336'; // LOW - Red
-                }
-
-                // Add white stroke for hover/selected state
-                if (stop.id === selectedId) {
-                  strokeColor = '#ffffff';
-                  strokeWidth = 2;
-                }
-              } else if (stop.id === selectedId) {
-                const percentage = (stop.peopleOn / maxValues.peopleOn) * 100;
-                if (percentage >= 66) {
-                  visualizationColor = '#4caf50';
-                } else if (percentage >= 33) {
-                  visualizationColor = '#ffc107';
-                } else {
-                  visualizationColor = '#f44336';
-                }
-                strokeColor = '#ffffff';
-                strokeWidth = 2;
+              if (percentage >= 66) {
+                visualizationColor = '#4caf50' // HIGH - Green
+              } else if (percentage >= 33) {
+                visualizationColor = '#ffc107' // MEDIUM - Yellow/Amber
+              } else {
+                visualizationColor = '#f44336' // LOW - Red
               }
 
-              return {
-                type: 'Feature',
-                id: stop.id,
-                properties: {
-                  _id: stop.id,
-                  name: stop.name,
-                  selectedStopId: selectedId,
-                  visualizationProperty: property,
-                  visualizationColor,
-                  strokeColor,
-                  strokeWidth,
-                  peopleOn: stop.peopleOn,
-                  peopleOff: stop.peopleOff,
-                  reachablePopulationWalk: stop.reachablePopulationWalk,
-                  reachablePopulationBike: stop.reachablePopulationBike,
-                },
-                geometry: {
-                  type: 'Point',
-                  coordinates: [stop.lng, stop.lat],
-                },
-              };
-            })
-          ),
+              // Add white stroke for hover/selected state
+              if (stop.id === selectedId) {
+                strokeColor = '#ffffff'
+                strokeWidth = 2
+              }
+            } else if (stop.id === selectedId) {
+              const percentage = (stop.peopleOn / maxValues.peopleOn) * 100
+              if (percentage >= 66) {
+                visualizationColor = '#4caf50'
+              } else if (percentage >= 33) {
+                visualizationColor = '#ffc107'
+              } else {
+                visualizationColor = '#f44336'
+              }
+              strokeColor = '#ffffff'
+              strokeWidth = 2
+            }
+
+            return {
+              type: 'Feature',
+              id: stop.id,
+              properties: {
+                _id: stop.id,
+                name: stop.name,
+                selectedStopId: selectedId,
+                visualizationProperty: property,
+                visualizationColor,
+                strokeColor,
+                strokeWidth,
+                peopleOn: stop.peopleOn,
+                peopleOff: stop.peopleOff,
+                reachablePopulationWalk: stop.reachablePopulationWalk,
+                reachablePopulationBike: stop.reachablePopulationBike,
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: [stop.lng, stop.lat],
+              },
+            }
+          }),
         },
-      };
+      }
 
-      return result;
+      return result
     }
-  );
+  )
 
-  export const stopsLinesGeoJson = createSelector(
-    selectAll,
-    (lines: TransitLine[]) =>
-      ({
+  export const stopsLinesGeoJson = createSelector(selectAll, filteredStops, (lines: TransitLine[], filteredStops) => {
+    // If there are filtered stops, only show those connections
+    if (filteredStops.length > 0) {
+      return {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
-          features: lines.map((line) => ({
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: line.stops.map((stop) => [stop.lng, stop.lat]),
+          features: [
+            {
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'LineString',
+                coordinates: filteredStops.map((stop) => [stop.lng, stop.lat]),
+              },
             },
-          })),
+          ],
         },
-      }) as GeoJSONSourceSpecification
-  )
+      } as GeoJSONSourceSpecification;
+    }
+
+    // Otherwise, create separate line features for each transit line
+    return {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: lines.map(line => ({
+          type: 'Feature',
+          properties: {
+            lineId: line.id
+          },
+          geometry: {
+            type: 'LineString',
+            coordinates: line.stops.map((stop) => [stop.lng, stop.lat]),
+          },
+        })),
+      },
+    } as GeoJSONSourceSpecification;
+  })
 
   export const getStopVisualizationValue = createSelector(selectedStop, visualizationProperty, (stop, property) => {
     if (!stop || property === 'off') return { label: '', value: 0 }

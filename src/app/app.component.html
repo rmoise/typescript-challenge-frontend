@@ -10,11 +10,44 @@
   }
 </div>
 
-<div class="sidebar">
-  <router-outlet />
+<!-- FAB Menu -->
+<div class="fab-container" *ngIf="isHomePage()">
+  <button mat-fab [matMenuTriggerFor]="fabMenu" class="fab-main">
+    <mat-icon>add</mat-icon>
+  </button>
+
+  <mat-menu #fabMenu="matMenu">
+    <button mat-menu-item (click)="openAddLineDialog()" matTooltip="Add Line" matTooltipPosition="left">
+      <mat-icon>directions_transit</mat-icon>
+      <span>Add Line</span>
+    </button>
+    <button mat-menu-item (click)="openAddStopDialog()" matTooltip="Add Stop" matTooltipPosition="left">
+      <mat-icon>stop_circle</mat-icon>
+      <span>Add Stop</span>
+    </button>
+    <button mat-menu-item (click)="openFilterDialog()" matTooltip="Filter Stops" matTooltipPosition="left">
+      <mat-icon>filter_list</mat-icon>
+      <span>Filter Stops</span>
+    </button>
+    <button mat-menu-item (click)="openDeleteLineDialog()" matTooltip="Delete Line" matTooltipPosition="left">
+      <mat-icon>delete</mat-icon>
+      <span>Delete Line</span>
+    </button>
+  </mat-menu>
 </div>
 
-<div class="map-controls">
+<div class="sidebar" [class.expanded]="isBottomSheetExpanded">
+  <div class="bottom-sheet-header" (click)="toggleBottomSheet()">
+    <div class="drag-handle"></div>
+    <h2>Transit Lines</h2>
+  </div>
+  <div class="bottom-sheet-content">
+    <router-outlet />
+  </div>
+</div>
+
+<!-- Desktop visualization controls -->
+<div class="map-controls hide-on-mobile">
   <button mat-icon-button [color]="visualizationProperty() === 'off' ? '' : 'primary'" (click)="toggleVisualization()">
     <mat-icon>visibility</mat-icon>
   </button>
@@ -28,4 +61,24 @@
       <mat-option value="reachablePopulationBike">Population Within Biking Distance</mat-option>
     </mat-select>
   </mat-form-field>
+</div>
+
+<!-- Mobile visualization controls -->
+<div class="mobile-visualization-controls show-on-mobile" [class.expanded]="isVisualizationExpanded">
+  <button mat-icon-button class="toggle-button" (click)="toggleVisualizationPanel()" matTooltip="Toggle visualization">
+    <mat-icon>{{ visualizationProperty() === 'off' ? 'visibility_off' : 'visibility' }}</mat-icon>
+  </button>
+
+  <div class="visualization-panel" *ngIf="isVisualizationExpanded">
+    <mat-form-field>
+      <mat-label>Visualization</mat-label>
+      <mat-select [value]="visualizationProperty()" (valueChange)="onVisualizationPropertyChange($event)">
+        <mat-option value="off">Off</mat-option>
+        <mat-option value="peopleOn">People Getting On</mat-option>
+        <mat-option value="peopleOff">People Getting Off</mat-option>
+        <mat-option value="reachablePopulationWalk">Population Within Walking Distance</mat-option>
+        <mat-option value="reachablePopulationBike">Population Within Biking Distance</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
 </div>

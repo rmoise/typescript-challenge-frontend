@@ -1,5 +1,31 @@
 @use '@angular/material' as mat;
 
+// Breakpoints
+$breakpoints: (
+  xs: 0,
+  sm: 600px,
+  md: 960px,
+  lg: 1280px,
+  xl: 1920px
+);
+
+// Media query mixins
+@mixin respond-to($breakpoint) {
+  @if map-get($breakpoints, $breakpoint) {
+    @media (min-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}
+
+@mixin respond-to-max($breakpoint) {
+  @if map-get($breakpoints, $breakpoint) {
+    @media (max-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}
+
 :root {
   --background-color: #fff;
   --highlight-color: #eee;
@@ -8,6 +34,12 @@
 
   --default-gap: 1rem;
   --small-gap: 0.5rem;
+
+  // Responsive spacing
+  @include respond-to-max(sm) {
+    --default-gap: 0.75rem;
+    --small-gap: 0.375rem;
+  }
 }
 
 @mixin shadow() {
@@ -42,4 +74,30 @@
 @mixin flex-align($justify: flex-start, $align: center) {
   align-items: $align;
   justify-content: $justify;
+}
+
+@mixin mobile-container() {
+  padding: var(--default-gap);
+  width: 100%;
+  box-sizing: border-box;
+
+  @include respond-to(sm) {
+    padding: var(--default-gap) var(--default-gap);
+  }
+}
+
+@mixin responsive-grid($min-width: 250px, $gap: var(--default-gap)) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($min-width, 1fr));
+  gap: $gap;
+}
+
+@mixin touch-target() {
+  min-height: 48px;
+  min-width: 48px;
+
+  @include respond-to(sm) {
+    min-height: 36px;
+    min-width: 36px;
+  }
 }

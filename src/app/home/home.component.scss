@@ -6,9 +6,15 @@
 
   .title {
     @include title();
+    @include respond-to-max(sm) {
+      font-size: 1.1rem;
+    }
   }
   .subtitle {
     @include subtitle();
+    @include respond-to-max(sm) {
+      font-size: 0.9rem;
+    }
   }
   @include text();
 
@@ -19,19 +25,30 @@
     border-radius: var(--border-radius);
     padding: var(--default-gap);
 
+    @include respond-to-max(sm) {
+      padding: var(--small-gap);
+    }
+
     .line-header {
       cursor: pointer;
       display: flex;
       align-items: center;
       padding: 8px;
+      @include touch-target();
 
       .subtitle {
         margin-right: 16px;
+        @include respond-to-max(sm) {
+          margin-right: 8px;
+        }
       }
 
       .stops-count {
         color: var(--text-secondary);
         font-size: 14px;
+        @include respond-to-max(sm) {
+          font-size: 12px;
+        }
       }
 
       &:hover {
@@ -46,6 +63,14 @@
           transform: rotate(180deg);
         }
       }
+
+      mat-icon {
+        @include respond-to-max(sm) {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
     }
 
     .stop-item {
@@ -55,22 +80,23 @@
       @include flex-align(flex-start, center);
       gap: var(--small-gap);
       border-radius: var(--border-radius);
+      @include touch-target();
+
       &:hover {
         background: var(--highlight-color);
       }
+
       mat-icon {
         width: 14px;
         height: 14px;
         font-size: 14px;
+        @include respond-to-max(sm) {
+          width: 12px;
+          height: 12px;
+          font-size: 12px;
+        }
       }
     }
-  }
-
-  .home-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--default-gap);
   }
 }
 
@@ -80,33 +106,5 @@
 }
 
 .home-container {
-  padding: 20px;
-
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    .actions {
-      display: flex;
-      gap: 10px;
-    }
-  }
-}
-
-.fab-container {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  z-index: 100;
-}
-
-.fab-main {
-  background-color: #3f51b5;
-  color: white;
-}
-
-::ng-deep .mat-menu-panel {
-  border-radius: 4px;
+  @include mobile-container();
 }

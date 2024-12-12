@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, Signal } from '@angular/core'
-import { RouterOutlet } from '@angular/router'
+import { RouterOutlet, Router } from '@angular/router'
 import { Store, select } from '@ngrx/store'
 import { Map, GeoJSONSource, Popup, LngLatBounds } from 'maplibre-gl'
 import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatSelectModule } from '@angular/material/select'
 import { MatIconModule } from '@angular/material/icon'
 import { MatButtonModule } from '@angular/material/button'
+import { MatMenuModule } from '@angular/material/menu'
+import { MatTooltipModule } from '@angular/material/tooltip'
 import { environment } from 'src/environments/environment'
 import { RootState } from 'src/store/app.store'
 import { TransitLinesActions } from 'src/store/transit-lines/transit-lines.actions'
@@ -20,6 +22,11 @@ import { MatDialog } from '@angular/material/dialog'
 import { ManageLinesDialogComponent } from './manage-lines/manage-lines-dialog.component'
 import { ApiService } from 'src/services/api.service'
 import { TransitLine } from 'src/types/line'
+import { AddLineDialogComponent } from './add-line/add-line-dialog.component'
+import { AddStopDialogComponent } from './add-stop/add-stop-dialog.component'
+import { FilterStopsDialogComponent } from './filter-stops/filter-stops-dialog.component'
+import { DeleteLineDialogComponent } from './delete-line/delete-line-dialog.component'
+import { SelectLineDialogComponent } from './select-line/select-line-dialog.component'
 
 /**
  * Interface defining the structure for legend range items
@@ -41,7 +48,16 @@ interface LegendRange {
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [RouterOutlet, MatFormFieldModule, MatSelectModule, MatIconModule, MatButtonModule, NgIf],
+  imports: [
+    RouterOutlet,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatTooltipModule,
+    NgIf
+  ],
 })
 export class AppComponent implements OnInit {
   // Constants for map source and layer IDs
@@ -65,6 +81,9 @@ export class AppComponent implements OnInit {
   selectedStopId = this.store.selectSignal(fromTransitLines.selectedStopId)
 
   private readonly selectedLine$ = this.store.select(fromTransitLines.selectedLineId);
+
+  isVisualizationExpanded = false;
+  isBottomSheetExpanded = false;
 
   /**
    * Computed signal for legend ranges based on visualization property and selected stop
@@ -105,7 +124,8 @@ export class AppComponent implements OnInit {
     private store: Store<RootState>,
     private logger: LoggerService,
     private dialog: MatDialog,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private router: Router
   ) {
     this.popup = new Popup({
       closeButton: false,
@@ -684,10 +704,28 @@ export class AppComponent implements OnInit {
   }
 
   /**
+   * Toggles the bottom sheet expansion state
+   */
+  toggleBottomSheet(): void {
+    this.isBottomSheetExpanded = !this.isBottomSheetExpanded;
+  }
+
+  /**
+   * Toggles the visualization panel expansion state on mobile
+   */
+  toggleVisualizationPanel(): void {
+    this.isVisualizationExpanded = !this.isVisualizationExpanded;
+  }
+
+  /**
    * Changes the visualization property for the map
    */
   onVisualizationPropertyChange(property: VisualizationProperty): void {
-    this.store.dispatch(TransitLinesActions.SetVisualizationProperty({ property }))
+    this.store.dispatch(TransitLinesActions.SetVisualizationProperty({ property }));
+    // Auto-collapse panel on mobile after selection
+    if (window.innerWidth < 600) {
+      this.isVisualizationExpanded = false;
+    }
   }
 
   /**
@@ -737,5 +775,124 @@ export class AppComponent implements OnInit {
       maxZoom: 13,
       duration: 1000,
     })
+  }
+
+  /**
+   * Checks if the current route is the home page
+   */
+  isHomePage(): boolean {
+    return this.router.url === '/' || this.router.url === '/home';
+  }
+
+  /**
+   * Opens the dialog for adding a new transit line
+   */
+  openAddLineDialog(): void {
+    document.querySelector('app-root')?.setAttribute('inert', '');
+
+    const dialogRef = this.dialog.open(AddLineDialogComponent, {
+      width: '400px',
+      hasBackdrop: true,
+      backdropClass: 'dialog-backdrop',
+      autoFocus: true,
+      restoreFocus: true,
+      disableClose: false,
+      panelClass: ['dialog-container', 'a11y-dialog'],
+      ariaDescribedBy: null,
+      ariaLabelledBy: 'dialog-title'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      document.querySelector('app-root')?.removeAttribute('inert');
+    });
+  }
+
+  /**
+   * Opens the dialog for adding a new stop
+   */
+  openAddStopDialog(): void {
+    document.querySelector('app-root')?.setAttribute('inert', '');
+
+    this.store.select(fromTransitLines.selectAll).pipe(take(1)).subscribe(lines => {
+      if (lines.length === 0) {
+        alert('Please create a line first before adding stops.');
+        document.querySelector('app-root')?.removeAttribute('inert');
+        return;
+      }
+
+      if (lines.length === 1) {
+        this.openAddStopDialogWithLine(lines[0].id);
+        return;
+      }
+
+      const dialogRef = this.dialog.open(SelectLineDialogComponent, {
+        width: '300px',
+        data: { lines }
+      });
+
+      dialogRef.afterClosed().subscribe(lineId => {
+        document.querySelector('app-root')?.removeAttribute('inert');
+        if (lineId) {
+          this.openAddStopDialogWithLine(lineId);
+        }
+      });
+    });
+  }
+
+  /**
+   * Opens the dialog for adding a stop to a specific line
+   */
+  private openAddStopDialogWithLine(lineId: string): void {
+    document.querySelector('app-root')?.setAttribute('inert', '');
+
+    const dialogRef = this.dialog.open(AddStopDialogComponent, {
+      width: '400px',
+      data: {
+        lineId,
+        isInitialStop: false
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      document.querySelector('app-root')?.removeAttribute('inert');
+    });
+  }
+
+  /**
+   * Opens the filter dialog
+   */
+  openFilterDialog(): void {
+    document.querySelector('app-root')?.setAttribute('inert', '');
+
+    const dialogRef = this.dialog.open(FilterStopsDialogComponent, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      document.querySelector('app-root')?.removeAttribute('inert');
+    });
+  }
+
+  /**
+   * Opens the delete line dialog
+   */
+  openDeleteLineDialog(): void {
+    document.querySelector('app-root')?.setAttribute('inert', '');
+
+    this.store.select(fromTransitLines.selectAll).pipe(take(1)).subscribe(lines => {
+      const dialogRef = this.dialog.open(DeleteLineDialogComponent, {
+        width: '300px',
+        data: { lines }
+      });
+
+      dialogRef.afterClosed().subscribe(lineId => {
+        document.querySelector('app-root')?.removeAttribute('inert');
+        if (lineId) {
+          if (confirm(`Are you sure you want to delete line ${lineId.toUpperCase()}?`)) {
+            this.store.dispatch(TransitLinesActions.DeleteLine({ id: lineId }));
+          }
+        }
+      });
+    });
   }
 }

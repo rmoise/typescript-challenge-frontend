@@ -1,10 +1,5 @@
 <!-- Main container for the transit lines application -->
 <div class="home-container">
-  <!-- Header section -->
-  <div class="header">
-    <h1>Transit Lines</h1>
-  </div>
-
   <!-- List of transit lines with expandable stops -->
   <div class="lines-list">
     @for (line of lines(); track line.id) {
@@ -32,27 +27,5 @@
         }
       </div>
     }
-  </div>
-
-  <!-- Floating Action Button (FAB) with speed dial menu -->
-  <div class="fab-container">
-    <button mat-fab
-            [matMenuTriggerFor]="fabMenu"
-            class="fab-main">
-      <mat-icon>add</mat-icon>
-    </button>
-
-    <!-- FAB Menu with action items -->
-    <mat-menu #fabMenu="matMenu">
-      @for (button of fabButtons; track button.icon) {
-        <button mat-menu-item
-                (click)="button.action()"
-                [matTooltip]="button.tooltip"
-                matTooltipPosition="left">
-          <mat-icon>{{ button.icon }}</mat-icon>
-          <span>{{ button.tooltip }}</span>
-        </button>
-      }
-    </mat-menu>
   </div>
 </div>

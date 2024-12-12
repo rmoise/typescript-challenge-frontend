@@ -26,11 +26,44 @@ main {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1;
+  z-index: 3;
   background: white;
   padding: 10px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  @include respond-to-max(sm) {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+
+    &:not(.expanded) {
+      .visualization-panel {
+        display: none;
+      }
+
+      .toggle-button {
+        background: white;
+        border-radius: 50%;
+        padding: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        @include touch-target();
+      }
+    }
+
+    &.expanded {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+      .toggle-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+      }
+    }
+  }
 }
 
 .sidebar {
@@ -40,11 +73,70 @@ main {
   top: 0;
   margin: var(--default-gap);
   padding: var(--default-gap);
-  width: 400px;
   background: var(--background-color);
   border-radius: var(--border-radius);
   @include shadow();
-  z-index: 2;
+  z-index: 4;
+  max-height: calc(100% - 2 * var(--default-gap));
+  overflow-y: auto;
+
+  @include respond-to(md) {
+    width: 400px;
+  }
+
+  @include respond-to-max(md) {
+    width: 100%;
+    max-height: 85vh;
+    top: auto;
+    bottom: 0;
+    margin: 0;
+    transform: translateY(calc(100% - 60px));
+    transition: transform 0.3s ease-in-out;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+    &.expanded {
+      transform: translateY(0);
+      z-index: 6;
+    }
+
+    .bottom-sheet-header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--default-gap);
+      cursor: pointer;
+      position: sticky;
+      top: 0;
+      background: var(--background-color);
+      border-bottom: 1px solid var(--highlight-color);
+      margin: calc(-1 * var(--default-gap));
+      margin-bottom: 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+      .drag-handle {
+        width: 40px;
+        height: 4px;
+        background: var(--highlight-color);
+        border-radius: 2px;
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      h2 {
+        margin: 0;
+        @include subtitle();
+      }
+    }
+
+    .bottom-sheet-content {
+      padding-top: var(--default-gap);
+      height: calc(100% - 60px);
+      overflow-y: auto;
+    }
+  }
+
   > * {
     flex: 1 1 auto;
   }
@@ -59,6 +151,10 @@ main {
   padding: 10px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  button {
+    @include touch-target();
+  }
 }
 
 .map-legend {
@@ -71,6 +167,13 @@ main {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 2;
   transition: opacity 0.3s ease-in-out;
+  max-width: 300px;
+
+  @include respond-to-max(sm) {
+    bottom: calc(50% + var(--default-gap));
+    right: 10px;
+    max-width: calc(100% - 20px);
+  }
 
   &.hidden {
     opacity: 0;
@@ -93,33 +196,103 @@ main {
       height: 10px;
       border-radius: 50%;
       margin-right: 8px;
-
-      &.people-on {
-        background: map-get($PROPERTY_COLORS, 'peopleOn');
-      }
-
-      &.people-off {
-        background: map-get($PROPERTY_COLORS, 'peopleOff');
-      }
-
-      &.walk {
-        background: map-get($PROPERTY_COLORS, 'reachablePopulationWalk');
-      }
-
-      &.bike {
-        background: map-get($PROPERTY_COLORS, 'reachablePopulationBike');
-      }
+      flex-shrink: 0;
     }
   }
 }
 
 :global(.maplibregl-popup) {
   z-index: 3;
+  max-width: 90% !important;
+
+  @include respond-to(sm) {
+    max-width: 300px !important;
+  }
 }
 
 :global(.maplibregl-popup-content) {
-  padding: 10px;
-  border-radius: 4px;
+  padding: var(--default-gap);
+  border-radius: var(--border-radius);
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+
+  @include respond-to-max(sm) {
+    padding: var(--small-gap);
+    font-size: 12px;
+  }
+}
+
+// Utility classes for responsive visibility
+.hide-on-mobile {
+  @include respond-to-max(sm) {
+    display: none !important;
+  }
+}
+
+.show-on-mobile {
+  @media (min-width: map-get($breakpoints, sm)) {
+    display: none !important;
+  }
+}
+
+.mobile-visualization-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+
+  .toggle-button {
+    background: white;
+    border-radius: 50%;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    @include touch-target();
+  }
+
+  &.expanded {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    right: 10px;
+    max-width: calc(100% - 20px);
+
+    .toggle-button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      box-shadow: none;
+    }
+
+    .visualization-panel {
+      padding-top: 40px;
+    }
+  }
+}
+
+.fab-container {
+  position: fixed;
+  bottom: calc(60px + 1rem);
+  right: 1rem;
+  z-index: 5;
+
+  @include respond-to(md) {
+    bottom: 2rem;
+  }
+}
+
+.fab-main {
+  background-color: #3f51b5;
+  color: white;
+  @include touch-target();
+}
+
+::ng-deep .mat-menu-panel {
+  border-radius: var(--border-radius);
+
+  @include respond-to-max(sm) {
+    max-width: calc(100vw - 32px) !important;
+    min-width: calc(100vw - 32px) !important;
+  }
 }

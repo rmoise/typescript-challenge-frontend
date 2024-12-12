@@ -1,19 +1,49 @@
 {
+  // Prevents automatic compilation on save
   "compileOnSave": false,
+
+  // TypeScript compiler options
   "compilerOptions": {
+    // Base URL for module resolution
     "baseUrl": "./",
+
+    // Output directory for compiled files
     "outDir": "./dist/out-tsc",
+
+    // Generate source maps for debugging
     "sourceMap": true,
+
+    // Don't generate corresponding .d.ts files
     "declaration": false,
+
+    // Support iterating over iterables in ES5/ES3
     "downlevelIteration": true,
+
+    // Enable experimental decorators for Angular
     "experimentalDecorators": true,
+
+    // Module resolution strategy
     "moduleResolution": "node",
+
+    // Import helpers from tslib
     "importHelpers": true,
+
+    // Use 'define' keyword for class fields
     "useDefineForClassFields": false,
+
+    // Target latest ECMAScript features
     "target": "ESNext",
+
+    // Module code generation
     "module": "es2020",
+
+    // Skip type checking of declaration files
     "skipLibCheck": true,
+
+    // Report errors on unused locals
     "noUnusedLocals": true,
+
+    // Libraries to include
     "lib": ["ESNext", "DOM"]
   }
 }

@@ -10,6 +10,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { NgFor, AsyncPipe } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+/**
+ * Dialog component for managing transit lines.
+ * Provides functionality to view and delete transit lines.
+ */
 @Component({
   selector: 'app-manage-lines-dialog',
   standalone: true,
@@ -48,6 +52,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ManageLinesDialogComponent {
+  /** Observable of all transit lines */
   lines$ = this.store.select(fromTransitLines.selectAll);
 
   constructor(
@@ -56,6 +61,10 @@ export class ManageLinesDialogComponent {
     private snackBar: MatSnackBar
   ) {}
 
+  /**
+   * Deletes a transit line after confirmation
+   * @param id The ID of the line to delete
+   */
   deleteLine(id: string) {
     if (confirm(`Are you sure you want to delete line ${id}?`)) {
       this.store.dispatch(TransitLinesActions.DeleteLine({ id }));

@@ -1,67 +1,172 @@
-# Targomo TypeScript Coding Challenge
+# Transit Lines Application
 
-Dear candidate,
+## Overview
+A modern Angular application for managing and visualizing transit lines and their stops. The application provides an interactive map interface to view transit lines, manage stops, and analyze passenger data.
 
-welcome to the Targomo TypeScript coding challenge. This challenge is both for applicants for a full-stack and front-end position. More on that later.
+## Features
+- 🗺️ Interactive map visualization using MapLibre GL
+- 📊 Real-time data visualization for:
+  - Passenger boarding/alighting counts
+  - Population reachability analysis (walking/biking)
+  - Stop-specific statistics
+- ✨ Modern UI with Material Design
+- 🚉 Transit line management:
+  - Add/remove transit lines
+  - Add/edit/remove stops
+  - Filter stops based on various criteria
+- 📱 Responsive design with mobile support
+- 🔄 Real-time state management with NgRx
+- 🎯 OnPush change detection for optimal performance
 
-## The Challenge
+## Technical Stack
+- **Framework**: Angular 18.2.4
+- **State Management**: NgRx 18.0.2
+- **UI Components**: Angular Material 18.2.4
+- **Maps**: MapLibre GL 4.7.0
+- **Build Tools**: Angular CLI 18.2.4
+- **Testing**: Jest 29.7.0
+- **Styling**: SCSS with Material Design
 
-At Tagomo, we often deal with location data such as transport lines and combine them with insights form our [APIs](https://www.targomo.com/developers/apis/).
+## Prerequisites
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+- A MapTiler API key
 
-For your challenge, we already put together a simple front-end application that shows the stops of a transit line on a map, together with a sidebar that lets the user select a single stop to see its details. It uses NgRx for state management and there is no backend involved.
+## Setup and Installation
+1. Clone the repository:
+   ```bash
+   git clone [repository-url]
+   cd typescript-challenge-frontend
+   ```
 
-The full dataset contains more information than what is currently displayed in the application, it also holds information about the number of people getting on and of at each stop and pre calculated reachability values. You can find the full data in `src/constants/u9.ts`. The dataset consists of 19 stops of the following Model:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-| property                  | type    | description                                     |
-| ------------------------- | ------- | ----------------------------------------------- |
-| `id`                      | string  | id of the stop                                  |
-| `name`                    | string  | name of the stop                                |
-| `peopleOff`               | integer | number of people getting off at that stop       |
-| `peopleOn`                | integer | number of people getting on at that stop        |
-| `prevId`                  | string  | id of the previous stop                         |
-| `nextId`                  | string  | id of the next stop                             |
-| `reachablePopulationWalk` | integer | number of reachable population in 30 min (walk) |
-| `reachablePopulationBike` | integer | number of reachable population in 30 min (bike) |
-| `lat`                     | float   | latitude coordinate                             |
-| `lng`                     | float   | longitude coordinate                            |
+3. Create environment file:
+   Create a `.env` file in the root directory with:
+   ```
+   MAPTILER_API_KEY=your_api_key_here
+   ```
 
-We would like you to extend this small web application, which can be enhanced with new features and user interactions.
+4. Start the development server:
+   ```bash
+   npm run serve
+   ```
 
-## Develop
+5. Open your browser and navigate to `http://localhost:4200`
 
-1. clone the repo
-2. `npm install`
-3. create `.env` file with `MAPTILER_API_KEY={YOUR_PROVIDED_KEY}` variable
-4. `npm run serve`
+## Project Structure
+```
+src/
+├── app/                    # Application components
+│   ├── home/              # Home component (main view)
+│   ├── detail/            # Detail component (stop details)
+│   ├── manage-lines/      # Line management dialogs
+│   └── styles/            # Global styles
+├── services/              # API and utility services
+├── store/                 # NgRx state management
+├── types/                 # TypeScript interfaces
+└── environments/          # Environment configurations
+```
 
-## Backlog
+## Key Components
 
-[There is a backlog of Tickets in this repo](https://github.com/targomo/typescript-challenge-frontend/issues). You can see this as an inspiration on what to do. The tickets are labelled with `frontend` and `fullstack` to indicate if we see this as a suitable ticket for front end or full stack candidates.
+### Home Component
+The main view displaying the transit lines list and map interface. Features:
+- Expandable transit line list
+- Stop visualization
+- Floating action button for line management
 
-- **You should not** work on ALL of the tickets. Pick some that you find interesting and focus on them.
-- If you have a really good idea on what to do with this app and its not in the backlog, go ahead and do that!
+### Detail Component
+Displays detailed information about selected stops:
+- Passenger statistics
+- Population reachability data
+- Stop editing capabilities
 
-**For full stack applicants we have an additional repo, that adds a small back end service to the project [here](https://github.com/targomo/typescript-challenge-backend).** This repo also has some issues to suggest improvements. For full stack applicants issue [#3](https://github.com/targomo/typescript-challenge-frontend/issues/3) is mandatory.
+### Map Visualization
+Interactive map showing:
+- Transit line routes
+- Stop locations with real-time data
+- Color-coded visualization based on selected metrics
 
-## Process
+## State Management
+Uses NgRx for predictable state management:
+- Actions for all transit line operations
+- Selectors for computed data visualization
+- Effects for API communication
+- Entity adapters for efficient data management
 
-To start the challenge just fork this repository (for full stack applicants also the back end repo) and commit your changes to your fork. As soon as you are finished, dont commit to your fork anymore and let us know. We will then review your results and get back to you as soon as possible.
+## API Integration
+RESTful API integration with endpoints for:
+- Transit line CRUD operations
+- Stop management
+- Data filtering and visualization
 
-We expect you to work an absolute maximum of six hours on the challenge
+## Testing
+- Unit tests using Jest
+- Component testing with Angular Testing Library
+- E2E testing capabilities
 
-## Evaluation
+Run tests with:
+```bash
+npm test
+```
 
-- We will consider the code quality and the number of features delivered (keep in mind that quality is better than quantity)
-- The projects are set up to meet our internal style guide (folder structure, best practises, lint etc) please follow the exsisting guidlines (pro tip: use prettier and run `npm run lint` regularly)
-- Unit tests are appreciated, but dont get stuck on them
-- You will receive our feedback not later than one week after you submit it
+## Code Quality
+- ESLint configuration for code quality
+- Prettier for code formatting
+- Angular style guide compliance
+- Strict TypeScript configuration
 
-## Next steps
+Run linting:
+```bash
+npm run lint
+```
 
-After you successfully completed the code challenge we would like to invite you for a meeting in person (or via video call) where we would get to know each other and take the opportunity to discuss your solution in detail.
+Format code:
+```bash
+npm run prettier
+```
 
-For questions or further clarification please don't hesitate to contact us.
+## Performance Optimizations
+- OnPush change detection
+- Lazy loading of components
+- Efficient state management with NgRx
+- Optimized map rendering
 
-Sincerely,
+## Accessibility
+- ARIA labels and roles
+- Keyboard navigation support
+- Screen reader compatibility
+- High contrast support
 
-Your friends at Targomo
+## Browser Support
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Future Improvements
+- [ ] Real-time transit updates
+- [ ] Advanced filtering capabilities
+- [ ] User authentication
+- [ ] Mobile app version
+- [ ] Offline support
+- [ ] Multi-language support
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+- Angular team for the amazing framework
+- MapLibre GL for the mapping capabilities
+- Material Design team for the UI components

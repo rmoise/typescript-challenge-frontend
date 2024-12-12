@@ -1,10 +1,15 @@
+<!-- Main container for the transit lines application -->
 <div class="home-container">
+  <!-- Header section -->
   <div class="header">
     <h1>Transit Lines</h1>
   </div>
+
+  <!-- List of transit lines with expandable stops -->
   <div class="lines-list">
     @for (line of lines(); track line.id) {
       <div class="line-item">
+        <!-- Line header with toggle functionality -->
         <div class="line-header" (click)="toggleLineExpansion(line.id)">
           <mat-icon>directions_transit</mat-icon>
           <h2 class="subtitle">{{ line.id }}</h2>
@@ -13,6 +18,8 @@
             expand_more
           </mat-icon>
         </div>
+
+        <!-- Expandable stops list for each line -->
         @if (isLineExpanded(line.id)) {
           <div class="stops-list">
             @for (stop of line.stops; track stop.id) {
@@ -27,7 +34,7 @@
     }
   </div>
 
-  <!-- Speed Dial FAB -->
+  <!-- Floating Action Button (FAB) with speed dial menu -->
   <div class="fab-container">
     <button mat-fab
             [matMenuTriggerFor]="fabMenu"
@@ -35,6 +42,7 @@
       <mat-icon>add</mat-icon>
     </button>
 
+    <!-- FAB Menu with action items -->
     <mat-menu #fabMenu="matMenu">
       @for (button of fabButtons; track button.icon) {
         <button mat-menu-item

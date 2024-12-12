@@ -204,4 +204,12 @@ export namespace fromTransitLines {
         } as FeatureCollection<Point>,
       }) as GeoJSONSourceSpecification
   )
+
+  export const selectedLineId = createSelector(transitLinesState, (state) => state.selectedLineId)
+
+  export const selectedLine = createSelector(
+    selectEntities,
+    selectedLineId,
+    (entities, lineId) => lineId ? entities[lineId] : null
+  )
 }

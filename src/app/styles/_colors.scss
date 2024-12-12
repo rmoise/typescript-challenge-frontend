@@ -1,15 +1,17 @@
+// Color variables for different property types in the application
 $PROPERTY_COLORS: (
-  'peopleOn': #e91e63,          // Pink
-  'peopleOff': #9c27b0,        // Purple
-  'reachablePopulationWalk': #2196f3,  // Blue
-  'reachablePopulationBike': #4caf50,  // Green
-  'SELECTED': #00ff00,
-  'HOVER': #ffff00
+  'peopleOn': #e91e63,                    // Pink - Used for indicating number of people boarding
+  'peopleOff': #9c27b0,                   // Purple - Used for indicating number of people alighting
+  'reachablePopulationWalk': #2196f3,     // Blue - Used for population within walking distance
+  'reachablePopulationBike': #4caf50,     // Green - Used for population within biking distance
+  'SELECTED': #00ff00,                    // Bright green - Used for selected items
+  'HOVER': #ffff00                        // Yellow - Used for hover states
 );
 
+// Color variables for visualization intensity levels
 $VISUALIZATION_COLORS: (
-  'LOW': #f44336,    // Material Red
-  'MEDIUM': #ffc107, // Material Amber
-  'HIGH': #4caf50,   // Material Green
-  'SELECTED': #00ff00,
+  'LOW': #f44336,      // Material Red - Used for low-intensity values
+  'MEDIUM': #ffc107,   // Material Amber - Used for medium-intensity values
+  'HIGH': #4caf50,     // Material Green - Used for high-intensity values
+  'SELECTED': #00ff00, // Bright green - Used for selected items in visualizations
 );

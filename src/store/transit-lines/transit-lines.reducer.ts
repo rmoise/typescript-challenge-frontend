@@ -7,6 +7,7 @@ export const TRANSIT_LINES_KEY = 'transit-lines'
 
 export interface TransitLinesState extends EntityState<TransitLine> {
   selectedStopId: string | null
+  selectedLineId: string | null
   visualizationProperty: 'off' | 'peopleOn' | 'peopleOff' | 'reachablePopulationWalk' | 'reachablePopulationBike'
   filteredStops: TransitStop[]
   filterLoading: boolean
@@ -18,6 +19,7 @@ export const adapter = createEntityAdapter<TransitLine>()
 
 export const initialState: TransitLinesState = adapter.getInitialState({
   selectedStopId: null,
+  selectedLineId: null,
   visualizationProperty: 'off',
   filteredStops: [],
   filterLoading: false,
@@ -142,5 +144,10 @@ export const transitLinesReducer = createReducer(
 
   on(TransitLinesActions.DeleteLineSuccess, (state, { id }) =>
     adapter.removeOne(id, state)
-  )
+  ),
+
+  on(TransitLinesActions.SelectLine, (state, { selectedLineId }) => ({
+    ...state,
+    selectedLineId,
+  }))
 )

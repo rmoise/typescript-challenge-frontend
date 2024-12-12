@@ -41,4 +41,8 @@ export namespace TransitLinesActions {
   export const DeleteLine = createAction('[TRANSIT LINES] Delete line', props<{ id: string }>())
   export const DeleteLineSuccess = createAction('[TRANSIT LINES] Delete line success', props<{ id: string }>())
   export const DeleteLineFailure = createAction('[TRANSIT LINES] Delete line failure', props<{ error: any }>())
+  export const SelectLine = createAction(
+    '[TRANSIT LINES] Select a line',
+    props<{ selectedLineId: string | null }>()
+  )
 }

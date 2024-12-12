@@ -112,6 +112,28 @@ export class TransitLinesEffects {
     )
   );
 
+  persistLineSelection$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(TransitLinesActions.SelectLine),
+        tap((action) => {
+          if (action.selectedLineId) {
+            localStorage.setItem('selectedLineId', action.selectedLineId)
+          } else {
+            localStorage.removeItem('selectedLineId')
+          }
+        })
+      ),
+    { dispatch: false }
+  )
+
+  initializeLineSelection$ = createEffect(() =>
+    of(localStorage.getItem('selectedLineId')).pipe(
+      filter((id): id is string => id !== null),
+      map((id) => TransitLinesActions.SelectLine({ selectedLineId: id }))
+    )
+  )
+
   constructor(
     private actions$: Actions,
     private router: Router,

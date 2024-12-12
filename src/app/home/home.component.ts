@@ -18,6 +18,10 @@ import { ManageLinesDialogComponent } from '../manage-lines/manage-lines-dialog.
 import { DeleteLineDialogComponent } from '../delete-line/delete-line-dialog.component'
 import { SelectLineDialogComponent } from '../select-line/select-line-dialog.component'
 
+/**
+ * HomeComponent is the main view component for displaying and managing transit lines.
+ * It provides functionality for viewing, expanding, and managing transit lines and their stops.
+ */
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -35,9 +39,13 @@ import { SelectLineDialogComponent } from '../select-line/select-line-dialog.com
   ],
 })
 export class HomeComponent {
+  // Signal for reactive transit lines data from the store
   readonly lines: Signal<TransitLine[]>
+
+  // Set to track which lines are currently expanded
   expandedLines = new Set<string>()
 
+  // Configuration for the Floating Action Button menu items
   fabButtons = [
     {
       icon: 'directions_transit',
@@ -69,10 +77,33 @@ export class HomeComponent {
     this.lines = this.store.selectSignal(fromTransitLines.selectAll)
   }
 
-  selectStop(selectedStopId: string): void {
-    this.store.dispatch(TransitLinesActions.SelectStop({ selectedStopId }))
+  /**
+   * Opens the dialog for adding a new transit line
+   */
+  openAddLineDialog(): void {
+    document.querySelector('app-root')?.setAttribute('inert', '');
+
+    const dialogRef = this.dialog.open(AddLineDialogComponent, {
+      width: '400px',
+      hasBackdrop: true,
+      backdropClass: 'dialog-backdrop',
+      autoFocus: true,
+      restoreFocus: true,
+      disableClose: false,
+      panelClass: ['dialog-container', 'a11y-dialog'],
+      ariaDescribedBy: null,
+      ariaLabelledBy: 'dialog-title'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      document.querySelector('app-root')?.removeAttribute('inert');
+      this.liveAnnouncer.announce('Dialog closed', 'polite');
+    });
   }
 
+  /**
+   * Opens the dialog for adding a new stop to a line
+   */
   openAddStopDialog(): void {
     const lines = this.lines();
     if (lines.length === 0) {
@@ -101,6 +132,10 @@ export class HomeComponent {
     });
   }
 
+  /**
+   * Opens the add stop dialog for a specific line
+   * @param lineId The ID of the line to add a stop to
+   */
   private openAddStopDialogWithLine(lineId: string): void {
     document.querySelector('app-root')?.setAttribute('inert', '');
 
@@ -126,27 +161,18 @@ export class HomeComponent {
     });
   }
 
-  openAddLineDialog(): void {
-    document.querySelector('app-root')?.setAttribute('inert', '');
-
-    const dialogRef = this.dialog.open(AddLineDialogComponent, {
-      width: '400px',
-      hasBackdrop: true,
-      backdropClass: 'dialog-backdrop',
-      autoFocus: true,
-      restoreFocus: true,
-      disableClose: false,
-      panelClass: ['dialog-container', 'a11y-dialog'],
-      ariaDescribedBy: null,
-      ariaLabelledBy: 'dialog-title'
-    });
-
-    dialogRef.afterClosed().subscribe(() => {
-      document.querySelector('app-root')?.removeAttribute('inert');
-      this.liveAnnouncer.announce('Dialog closed', 'polite');
-    });
+  /**
+   * Dispatches an action to select a stop when clicked
+   * @param selectedStopId The ID of the stop to select
+   */
+  selectStop(selectedStopId: string): void {
+    this.store.dispatch(TransitLinesActions.SelectStop({ selectedStopId }))
   }
 
+  /**
+   * Toggles the expansion state of a transit line
+   * @param lineId The ID of the line to toggle
+   */
   toggleLineExpansion(lineId: string): void {
     if (this.expandedLines.has(lineId)) {
       this.expandedLines.delete(lineId)
@@ -155,10 +181,19 @@ export class HomeComponent {
     }
   }
 
+  /**
+   * Checks if a specific line is currently expanded
+   * @param lineId The ID of the line to check
+   * @returns boolean indicating if the line is expanded
+   */
   isLineExpanded(lineId: string): boolean {
     return this.expandedLines.has(lineId)
   }
 
+  /**
+   * Opens the filter dialog for filtering stops
+   * Handles accessibility and dialog state management
+   */
   openFilterDialog(): void {
     document.querySelector('app-root')?.setAttribute('inert', '');
 
@@ -180,6 +215,10 @@ export class HomeComponent {
     });
   }
 
+  /**
+   * Opens the manage lines dialog
+   * Handles accessibility and dialog state management
+   */
   openManageLines(): void {
     document.querySelector('app-root')?.setAttribute('inert', '');
 
@@ -201,6 +240,10 @@ export class HomeComponent {
     });
   }
 
+  /**
+   * Opens the delete line dialog and handles line deletion
+   * Includes confirmation step before deletion
+   */
   openDeleteLineMenu(): void {
     document.querySelector('app-root')?.setAttribute('inert', '');
 
